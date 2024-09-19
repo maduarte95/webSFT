@@ -1,0 +1,22 @@
+factors:
+  - desc: playerCount determines the number of Players are in a Game.
+    name: playerCount
+    values:
+      - value: 1
+  - desc: Type of LLM cues to receive
+    name: cueType
+    values:
+      - value: divergent
+      - value: adjacent
+
+treatments:
+  - desc: Adjacent LLM cues
+    factors:
+      playerCount: 1
+      cueType: adjacent
+    name: adjacent_cues
+  - desc: Divergent LLM cues
+    factors:
+      playerCount: 1
+      cueType: divergent
+    name: divergent_cues
