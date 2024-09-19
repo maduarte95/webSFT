@@ -72,18 +72,17 @@ Empirica.onGameStart(({ game }) => {
   const { cueType } = treatment;
   console.log("cueType:", cueType);
 
-  // Initial round for API interaction
+  // Initial round for testing API interaction
   const initialRound = game.addRound({
     name: "testRound",
   });
-  // initialRound.addStage({ name: "apiInteraction", duration: 300 });
   initialRound.addStage({ name: "LocalAPI", duration: 300 });
 
   // Verbal Fluency Task round
   const vftRound = game.addRound({
     name: "VFTask",
   });
-  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //180
+  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
   vftRound.addStage({ name: "VFResult", duration: 300 }); 
 
   // Verbal Fluency Collaboration round

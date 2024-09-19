@@ -5,7 +5,6 @@ import {
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React from "react";
-// import { APIInteraction } from "./stages/APIInteraction";
 import { VerbalFluencyTask } from "./stages/VerbalFluencyTask";
 import { VFResult } from "./stages/VFResult";
 import { LocalAPI } from "./stages/LocalAPI"; // Import the new LocalAPI component
