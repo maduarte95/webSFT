@@ -4,11 +4,7 @@ This repository contains an Empirica-based experiment for conducting Semantic Fo
 
 ## Installation
 
-1. Clone this repository:
-   ```
-   git clone [repository-url]
-   ```
-
+1. Clone this repository.
 2. Install dependencies in both the server and client directories:
    ```
    cd server && npm install
@@ -102,4 +98,4 @@ Treatments vary the system prompt. Subjects within a batch are assigned randomly
 
 ## Customization
 
-To adjust stage durations, modify the `server/callbacks.js` file.
+To adjust stage durations, modify the `server/callbacks.js` file (set to 10s for testing).
