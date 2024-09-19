@@ -46,8 +46,8 @@ empirica export
 
 ### General Information
 
-- LLMs are created at the start of every round, with history and system prompts varying based on experiment conditions.
-- The user prompt contains the last word produced by the user.
+- LLMs are created at the start of the task stages, with history and system prompts varying based on experiment conditions.
+- The user prompt contains the updated list of words and last word produced by the user.
 - Rounds correspond to different modalities of VFT (human-led and collaborative).
 - Each task has a duration of 3 minutes (10 seconds for testing).
 - A task summary is presented at the end of every round.
