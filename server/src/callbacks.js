@@ -66,6 +66,55 @@ function getOrCreateLLM(playerId, roundId, treatment, roundName) {
   return playerLLMs.get(roundId);
 }
 
+// function getOrCreateLLM(playerId, roundId, treatment, roundName) {
+//   console.log(`Accessing LLM for player ${playerId}, round ${roundId}, roundName ${roundName}. Treatment:`, treatment);
+  
+//   if (!playerRoundLLMs.has(playerId)) {
+//     playerRoundLLMs.set(playerId, new Map());
+//   }
+  
+//   const playerLLMs = playerRoundLLMs.get(playerId);
+  
+//   if (!playerLLMs.has(roundId)) {
+//     let systemPrompt = "";
+//     const model = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
+
+//     if (roundName === "VFTask" || roundName === "VFTCollab") {
+//       if (treatment && treatment.cueType === "adjacent") {
+//         const promptPath = path.join(__dirname, '..', 'prompts', 'adjacent.txt');
+//         systemPrompt = readPromptFile(promptPath);
+//       } else if (treatment && treatment.cueType === "divergent") {
+//         const promptPath = path.join(__dirname, '..', 'prompts', 'divergent.txt');
+//         systemPrompt = readPromptFile(promptPath);
+//       }
+      
+//       if (!systemPrompt) {
+//         systemPrompt = "You are an assistant helping with a verbal fluency task about animals. Provide single-word animal names as responses. Do not repeat animal names that have already been mentioned.";
+//         console.warn(`Warning: Using default prompt for round ${roundName}. Treatment: ${JSON.stringify(treatment)}`);
+//       }
+//     } else if (roundName === "testRound") {
+//       console.log(`Creating LLM for testRound without a system prompt.`);
+//     } else {
+//       console.warn(`Unexpected round name: ${roundName}. Using a generic system prompt.`);
+//       systemPrompt = "You are a helpful assistant. Please respond to the user's queries.";
+//     }
+
+//     console.log(`Creating new LLM for player ${playerId}, round ${roundId} with systemPrompt: ${systemPrompt || "No system prompt"}`);
+    
+//     try {
+//       playerLLMs.set(roundId, new LLM(systemPrompt, model));
+//       console.log(`New LLM created for player ${playerId}, round ${roundId}`);
+//     } catch (error) {
+//       console.error(`Error creating LLM for player ${playerId}, round ${roundId}:`, error);
+//       throw error;
+//     }
+//   } else {
+//     console.log(`Existing LLM retrieved for player ${playerId}, round ${roundId}`);
+//   }
+  
+//   return playerLLMs.get(roundId);
+// }
+
 Empirica.onGameStart(({ game }) => {
   console.log(`Game ${game.id} started`);
   const treatment = game.get("treatment");
@@ -103,9 +152,9 @@ Empirica.onRoundStart(({ round }) => {
     game.players.forEach(player => {
       try {
         const llm = getOrCreateLLM(player.id, round.id, treatment, roundName);
-        console.log(`LLM ready for player ${player.id}, round ${round.id}, game ${game.id}`);
+        console.log(`onRoundStart LLM ready for player ${player.id}, round ${round.id}, game ${game.id}`);
       } catch (error) {
-        console.error(`Error preparing LLM for player ${player.id}, round ${round.id}, game ${game.id}:`, error);
+        console.error(`onRoundStart Error preparing LLM for player ${player.id}, round ${round.id}, game ${game.id}:`, error);
       }
     });
   }
@@ -127,9 +176,9 @@ Empirica.onStageStart(({ stage }) => {
     game.players.forEach(player => {
       try {
         const llm = getOrCreateLLM(player.id, stage.round.id, treatment, roundName);
-        console.log(`LLM ready for player ${player.id}, stage ${stageName}, game ${game.id}`);
+        console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, game ${game.id}`);
       } catch (error) {
-        console.error(`Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
+        console.error(`onStageStart Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
       }
     });
   }
@@ -158,7 +207,9 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
   try {
     const treatment = player.currentGame.get("treatment");
+    console.log(`onTrigger called, cueType: ${treatment.cueType}`);
     const llm = getOrCreateLLM(player.id, currentRound.id, treatment, player.currentRound.get("name"));
+    console.log(`onTrigger - LLM retrieved for player ${player.id}, game ${player.currentGame.id}`);
 
     let userPrompt;
     switch (currentStage.get("name")) {
