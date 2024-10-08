@@ -84,7 +84,7 @@ Empirica.onGameStart(({ game }) => {
   const vfcRound = game.addRound({
     name: "VFTCollab",
   });
-  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
+  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 60 });
   vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
 });
 
