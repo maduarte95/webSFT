@@ -2,6 +2,7 @@ import {
   usePlayer,
   useRound,
   useStage,
+  usePlayers
 } from "@empirica/core/player/classic/react";
 import { Loading } from "@empirica/core/player/react";
 import React from "react";
@@ -45,6 +46,15 @@ export function Stage() {
         default:
           return <Loading />;
       }
+      case "HHCollab":
+        switch (stage.get("name")) {
+          case "HHCollab":
+            return <HHCollab />;
+          case "HHCollabResult":
+            return <HHCollabResult />;
+          default:
+            return <Loading />;
+        }
     case "VFTask":
       switch (stage.get("name")) {
         case "VerbalFluencyTask":
@@ -60,15 +70,6 @@ export function Stage() {
           return <VerbalFluencyCollab />;
         case "VFCollabResult":
           return <VFCollabResult />;
-        default:
-          return <Loading />;
-      }
-    case "HHCollab":
-      switch (stage.get("name")) {
-        case "HHCollab":
-          return <HHCollab />;
-        case "HHCollabResult":
-          return <HHCollabResult />;
         default:
           return <Loading />;
       }

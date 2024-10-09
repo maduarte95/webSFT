@@ -68,11 +68,21 @@ Empirica.onGameStart(({ game }) => {
   const { playerCount } = treatment;
   console.log("cueType:", cueType);
 
+  // Human-human round if playerCount > 1
+
   // Initial round for testing API interaction
   const initialRound = game.addRound({
     name: "testRound",
   });
   initialRound.addStage({ name: "LocalAPI", duration: 300 });
+
+  if (playerCount > 1) {
+    const hhRound = game.addRound({
+      name: "HHCollab",
+    });
+    hhRound.addStage({ name: "HHCollab", duration: 30 });
+    hhRound.addStage({ name: "HHCollabResult", duration: 300 });
+  }
 
   // Verbal Fluency Task round
   const vftRound = game.addRound({
@@ -88,14 +98,6 @@ Empirica.onGameStart(({ game }) => {
   vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
   vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
 
-  // Human-human round if playerCount > 1
-  if (playerCount > 1) {
-    const hhRound = game.addRound({
-      name: "HHCollab",
-    });
-    hhRound.addStage({ name: "HHCollab", duration: 30 });
-    hhRound.addStage({ name: "HHCollabResult", duration: 300 });
-  }
 });
 
   Empirica.onRoundStart(({ round }) => {

@@ -1,12 +1,13 @@
 import React from 'react';
-import { usePlayer, usePlayers } from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers, useRound } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function HHCollabResult() {
   const player = usePlayer();
   const players = usePlayers();
   const partner = players.find(p => p.id !== player.id);
-  const words = player.round.get("words") || [];
+  const round = useRound();
+  const words = round.get("words") || [];
 
   const mainWords = words.filter(word => word.source === 'main');
   const helperWords = words.filter(word => word.source === 'helper');
@@ -15,7 +16,7 @@ export function HHCollabResult() {
   const mainWordCount = mainWords.length;
   const helperWordCount = helperWords.length;
 
-  const score = player.round.get("score") || 0;
+  const score = round.get("score") || 0;
 
   function handleContinue() {
     player.stage.set("submit", true);
