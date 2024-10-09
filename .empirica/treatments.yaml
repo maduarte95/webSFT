@@ -3,6 +3,7 @@ factors:
     name: playerCount
     values:
       - value: 1
+      - value: 2
   - desc: Type of LLM cues to receive
     name: cueType
     values:
@@ -20,3 +21,14 @@ treatments:
       playerCount: 1
       cueType: divergent
     name: divergent_cues
+  - desc: 2 player game with adjacent LLM cues
+    factors:
+      playerCount: 2
+      cueType: adjacent
+    name: adjacent_cues_2p
+  - desc: 2 player game with divergent LLM cues
+    factors:
+      playerCount: 2
+      cueType: divergent
+    name: divergent_cues_2p
+    

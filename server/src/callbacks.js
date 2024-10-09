@@ -65,6 +65,7 @@ Empirica.onGameStart(({ game }) => {
   console.log(`Game ${game.id} started`);
   const treatment = game.get("treatment");
   const { cueType } = treatment;
+  const { playerCount } = treatment;
   console.log("cueType:", cueType);
 
   // Initial round for testing API interaction
@@ -84,8 +85,17 @@ Empirica.onGameStart(({ game }) => {
   const vfcRound = game.addRound({
     name: "VFTCollab",
   });
-  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 60 });
+  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
   vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
+
+  // Human-human round if playerCount > 1
+  if (playerCount > 1) {
+    const hhRound = game.addRound({
+      name: "HHCollab",
+    });
+    hhRound.addStage({ name: "HHCollab", duration: 30 });
+    hhRound.addStage({ name: "HHCollabResult", duration: 300 });
+  }
 });
 
   Empirica.onRoundStart(({ round }) => {
@@ -104,6 +114,13 @@ Empirica.onGameStart(({ game }) => {
         console.error(`onRoundStart Error storing treatment and round name for player ${player.id}, round ${roundName}, game ${game.id}:`, error);
       }
     });
+    
+    if (round.get("name") === "HHCollab") {
+      const players = round.currentGame.players;
+      players.forEach((player, index) => {
+        player.set("role", index === 0 ? "main" : "helper");
+      });
+    }
   });
 
 
