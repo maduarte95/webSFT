@@ -9,6 +9,7 @@ factors:
     values:
       - value: divergent
       - value: adjacent
+      - value: inferred
 
 treatments:
   - desc: Adjacent LLM cues
@@ -21,6 +22,11 @@ treatments:
       playerCount: 1
       cueType: divergent
     name: divergent_cues
+  - desc: Prompt-inferred LLM cues
+    factors:
+      playerCount: 1
+      cueType: inferred
+    name: inferred_cues
   - desc: 2 player game with adjacent LLM cues
     factors:
       playerCount: 2
@@ -31,4 +37,9 @@ treatments:
       playerCount: 2
       cueType: divergent
     name: divergent_cues_2p
+  - desc: 2 player game with prompt-inferred LLM cues
+    factors:
+      playerCount: 2
+      cueType: inferred
+    name: inferred_cues_2p
     

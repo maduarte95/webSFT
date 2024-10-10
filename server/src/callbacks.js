@@ -32,6 +32,9 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment) {
       } else if (treatment && treatment.cueType === "divergent") {
         const promptPath = path.join(__dirname, '..', 'prompts', 'divergent.txt');
         systemPrompt = readPromptFile(promptPath);
+      } else if (treatment && treatment.cueType === "inferred") {
+        const promptPath = path.join(__dirname, '..', 'prompts', 'inferred.txt');
+        systemPrompt = readPromptFile(promptPath);
       }
       
       if (!systemPrompt) {
