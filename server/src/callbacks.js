@@ -82,6 +82,8 @@ Empirica.onGameStart(({ game }) => {
     });
     hhRound.addStage({ name: "HHCollab", duration: 30 });
     hhRound.addStage({ name: "HHCollabResult", duration: 300 });
+    hhRound.addStage({ name: "HHCollabSwitched", duration: 30 });
+    hhRound.addStage({ name: "HHCollabResultSwitched", duration: 300 });
   }
 
   // Verbal Fluency Task round
@@ -117,12 +119,12 @@ Empirica.onGameStart(({ game }) => {
       }
     });
     
-    if (round.get("name") === "HHCollab") {
-      const players = round.currentGame.players;
-      players.forEach((player, index) => {
-        player.set("role", index === 0 ? "main" : "helper");
-      });
-    }
+    // if (round.get("name") === "HHCollab") {
+    //   const players = round.currentGame.players;
+    //   players.forEach((player, index) => {
+    //     player.set("role", index === 0 ? "main" : "helper");
+    //   });
+    // }
   });
 
 
@@ -151,6 +153,19 @@ Empirica.onGameStart(({ game }) => {
       });
     } else {
       console.log(`Stage ${stageName} does not require LLM creation.`);
+    }
+
+    if (stage.get("name") === "HHCollab") {
+      const players = stage.currentGame.players;
+      players.forEach((player, index) => {
+        player.set("role", index === 0 ? "main" : "helper");
+      });
+    }
+    if (stage.get("name") === "HHCollabSwitched") {
+      const players = stage.currentGame.players;
+      players.forEach((player, index) => {
+        player.set("role", index === 0 ? "helper" : "main");
+      });
     }
   });
 

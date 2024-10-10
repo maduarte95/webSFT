@@ -46,15 +46,19 @@ export function Stage() {
         default:
           return <Loading />;
       }
-      case "HHCollab":
-        switch (stage.get("name")) {
-          case "HHCollab":
-            return <HHCollab />;
-          case "HHCollabResult":
-            return <HHCollabResult />;
-          default:
-            return <Loading />;
-        }
+    case "HHCollab":
+      switch (stage.get("name")) {
+        case "HHCollab":
+          return <HHCollab />;
+        case "HHCollabResult":
+          return <HHCollabResult />;
+        case "HHCollabSwitched":
+          return <HHCollab />;
+        case "HHCollabResultSwitched":
+          return <HHCollabResult />;
+        default:
+          return <Loading />;
+      }
     case "VFTask":
       switch (stage.get("name")) {
         case "VerbalFluencyTask":
