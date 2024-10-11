@@ -9,7 +9,7 @@ export function HHInterleavedResult() {
   const words = round.get("words") || [];
 
   const totalWordCount = words.length;
-  const score = round.get("score") || 0;
+  const score = player.round.get("score") || 0; //both players' score corresponds to total word count
 
   function handleContinue() {
     player.stage.set("submit", true);

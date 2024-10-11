@@ -52,8 +52,12 @@ export function VerbalFluencyCollab() {
     triggerAIResponse();
 
     // Update the score (count of user words)
-    const userWordCount = updatedWords.filter(word => word.source === 'user').length;
-    player.round.set("score", userWordCount);
+    // const userWordCount = updatedWords.filter(word => word.source === 'user').length;
+    // player.round.set("score", userWordCount);
+
+    //set the score to the total number of words
+    const totalWordCount = updatedWords.length;
+    player.round.set("score", totalWordCount);
   }
 
   function handleKeyDown(event) {

@@ -16,7 +16,7 @@ export function HHCollabResult() {
   const mainWordCount = mainWords.length;
   const helperWordCount = helperWords.length;
 
-  const score = round.get("score") || 0;
+  const score = player.round.get("score") || 0; //both players' score is the main player's word count
 
   function handleContinue() {
     player.stage.set("submit", true);

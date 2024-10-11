@@ -86,9 +86,13 @@ Empirica.onGameStart(({ game }) => {
     });
     hhRound.addStage({ name: "HHCollab", duration: 30 });
     hhRound.addStage({ name: "HHCollabResult", duration: 300 });
-    hhRound.addStage({ name: "HHCollabSwitched", duration: 30 });
-    hhRound.addStage({ name: "HHCollabResultSwitched", duration: 300 });
 
+    const hhRoundSwitched = game.addRound({
+      name: "HHCollabSwitched",
+    });
+    hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 30 });
+    hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
+    
     const hhInterleavedRound = game.addRound({
       name: "HHInterleaved",
     });

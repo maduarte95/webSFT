@@ -18,6 +18,7 @@ export function HHInterleaved() {
       const wordOwner = lastSavedWord.player === player.id ? "You" : "Partner";
       setLastWord(`${wordOwner}: ${lastSavedWord.text}`);
     }
+    player.round.set("score", words.length); //set both players' score to total word count  
   }, [round.get("words"), player.id]);
 
   function handleSendWord() {
@@ -26,7 +27,7 @@ export function HHInterleaved() {
     const words = round.get("words") || [];
     const updatedWords = [...words, { text: currentWord.trim(), player: player.id }];
     round.set("words", updatedWords);
-    round.set("score", updatedWords.length);
+    // player.round.set("score", updatedWords.length);
     setCurrentWord("");
 
     // Switch turns

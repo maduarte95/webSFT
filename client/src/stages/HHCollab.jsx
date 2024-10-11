@@ -17,6 +17,7 @@ export function HHCollab() {
     if (lastSavedWord) {
       setLastWord(lastSavedWord.source === 'helper' ? `Assistant: ${lastSavedWord.text}` : lastSavedWord.text);
     }
+    player.round.set("score", words.filter(word => word.source === 'main').length); //set both players' score to main player's word count   
   }, [round.get("words")]);
 
   function handleSendWord() {
@@ -31,9 +32,9 @@ export function HHCollab() {
       round.set("waitingForAssistant", false);
     }
 
-    const mainWordCount = updatedWords.filter(word => word.source === 'main').length;
-    round.set("score", mainWordCount);
-  }
+    // const mainWordCount = updatedWords.filter(word => word.source === 'main').length;
+    // player.round.set("score", mainWordCount); //set both players' score to main player's word count
+  } 
 
   function handleRequestHint() {
     round.set("waitingForAssistant", true);

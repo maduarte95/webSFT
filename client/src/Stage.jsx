@@ -54,6 +54,11 @@ export function Stage() {
           return <HHCollab />;
         case "HHCollabResult":
           return <HHCollabResult />;
+        default:
+          return <Loading />;
+      }
+    case "HHCollabSwitched":
+      switch (stage.get("name")) {
         case "HHCollabSwitched":
           return <HHCollab />;
         case "HHCollabResultSwitched":
