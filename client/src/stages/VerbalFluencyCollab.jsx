@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
+import { usePlayer, useRound } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function VerbalFluencyCollab() {
@@ -7,26 +7,47 @@ export function VerbalFluencyCollab() {
   const [currentWord, setCurrentWord] = useState("");
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const player = usePlayer();
+  const round = useRound();
 
   useEffect(() => {
     const savedWords = player.round.get("words") || [];
     setWords(savedWords);
   }, [player.round]);
 
+  // useEffect(() => {
+  //   const checkForResponse = () => {
+  //     const response = player.stage.get("apiResponse");
+  //     if (response) {
+  //       setWords((currentWords) => {
+  //         const updatedWords = [...currentWords, { text: response, source: 'ai' }];
+  //         player.round.set("words", updatedWords);
+  //         return updatedWords;
+  //       });
+  //       setIsWaitingForAI(false);
+  //       player.stage.set("apiResponse", null); // Clear the response
+  //     }
+  //   };
+
+  //   const intervalId = setInterval(checkForResponse, 1000);
+  //   return () => clearInterval(intervalId);
+  // }, [player.stage, player.round]);
+
   useEffect(() => {
     const checkForResponse = () => {
       const response = player.stage.get("apiResponse");
       if (response) {
+        const startTime = round.get("startTime");
+        const timestamp = Date.now() - startTime;
         setWords((currentWords) => {
-          const updatedWords = [...currentWords, { text: response, source: 'ai' }];
+          const updatedWords = [...currentWords, { text: response, source: 'ai', timestamp }];
           player.round.set("words", updatedWords);
           return updatedWords;
         });
         setIsWaitingForAI(false);
-        player.stage.set("apiResponse", null); // Clear the response
+        player.stage.set("apiResponse", null);
       }
     };
-
+  
     const intervalId = setInterval(checkForResponse, 1000);
     return () => clearInterval(intervalId);
   }, [player.stage, player.round]);
@@ -41,21 +62,38 @@ export function VerbalFluencyCollab() {
     }
   }
 
+  // function handleSendWord() {
+  //   if (currentWord.trim() === "" || isWaitingForAI) return;
+
+  //   const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
+  //   setWords(updatedWords);
+  //   player.round.set("words", updatedWords);
+  //   player.round.set("lastWord", currentWord.trim());
+  //   setCurrentWord("");
+  //   triggerAIResponse();
+
+  //   // Update the score (count of user words)
+  //   // const userWordCount = updatedWords.filter(word => word.source === 'user').length;
+  //   // player.round.set("score", userWordCount);
+
+  //   //set the score to the total number of words
+  //   const totalWordCount = updatedWords.length;
+  //   player.round.set("score", totalWordCount);
+  // }
+
   function handleSendWord() {
     if (currentWord.trim() === "" || isWaitingForAI) return;
-
-    const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
+  
+    const startTime = round.get("startTime");
+    const timestamp = Date.now() - startTime;
+  
+    const updatedWords = [...words, { text: currentWord.trim(), source: 'user', timestamp }];
     setWords(updatedWords);
     player.round.set("words", updatedWords);
     player.round.set("lastWord", currentWord.trim());
     setCurrentWord("");
     triggerAIResponse();
-
-    // Update the score (count of user words)
-    // const userWordCount = updatedWords.filter(word => word.source === 'user').length;
-    // player.round.set("score", userWordCount);
-
-    //set the score to the total number of words
+  
     const totalWordCount = updatedWords.length;
     player.round.set("score", totalWordCount);
   }

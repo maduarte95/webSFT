@@ -21,15 +21,30 @@ export function HHInterleaved() {
     player.round.set("score", words.length); //set both players' score to total word count  
   }, [round.get("words"), player.id]);
 
+//   function handleSendWord() {
+//     if (currentWord.trim() === "" || !isPlayerTurn) return;
+
+//     const words = round.get("words") || [];
+//     const updatedWords = [...words, { text: currentWord.trim(), player: player.id }];
+//     round.set("words", updatedWords);
+//     // player.round.set("score", updatedWords.length);
+//     setCurrentWord("");
+
+//     // Switch turns
+//     round.set("currentTurnPlayerId", otherPlayer.id);
+//   }
+
   function handleSendWord() {
     if (currentWord.trim() === "" || !isPlayerTurn) return;
-
+  
+    const startTime = round.get("startTime");
+    const timestamp = Date.now() - startTime;
+  
     const words = round.get("words") || [];
-    const updatedWords = [...words, { text: currentWord.trim(), player: player.id }];
+    const updatedWords = [...words, { text: currentWord.trim(), player: player.id, timestamp }];
     round.set("words", updatedWords);
-    // player.round.set("score", updatedWords.length);
     setCurrentWord("");
-
+  
     // Switch turns
     round.set("currentTurnPlayerId", otherPlayer.id);
   }

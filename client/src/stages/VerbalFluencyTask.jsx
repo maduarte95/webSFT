@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer } from "@empirica/core/player/classic/react";
+import { usePlayer, useRound } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function VerbalFluencyTask() {
@@ -8,6 +8,7 @@ export function VerbalFluencyTask() {
   const [lastWord, setLastWord] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const player = usePlayer();
+  const round = useRound();
 
   useEffect(() => {
     const savedWords = player.round.get("words") || [];
@@ -18,24 +19,47 @@ export function VerbalFluencyTask() {
     }
   }, [player.round]);
 
+  // useEffect(() => {
+  //   const checkForResponse = () => {
+  //     const response = player.stage.get("apiResponse");
+  //     if (response) {
+  //       setWords((currentWords) => {
+  //         const updatedWords = [...currentWords, { text: response, source: 'ai' }];
+  //         player.round.set("words", updatedWords);
+  //         return updatedWords;
+  //       });
+  //       setLastWord(`AI Hint: ${response}`);
+  //       setIsLoading(false);
+  //       player.stage.set("apiResponse", null); // Clear the response
+  //     }
+  //   };
+
+  //   const intervalId = setInterval(checkForResponse, 1000);
+  //   return () => clearInterval(intervalId);
+  // }, [player.stage, player.round]);
+  
+  // Also update the useEffect that handles AI responses
   useEffect(() => {
     const checkForResponse = () => {
       const response = player.stage.get("apiResponse");
       if (response) {
+        const startTime = round.get("startTime");
+        const timestamp = Date.now() - startTime;
         setWords((currentWords) => {
-          const updatedWords = [...currentWords, { text: response, source: 'ai' }];
+          const updatedWords = [...currentWords, { text: response, source: 'ai', timestamp }];
           player.round.set("words", updatedWords);
           return updatedWords;
         });
         setLastWord(`AI Hint: ${response}`);
         setIsLoading(false);
-        player.stage.set("apiResponse", null); // Clear the response
+        player.stage.set("apiResponse", null);
       }
     };
-
+  
     const intervalId = setInterval(checkForResponse, 1000);
     return () => clearInterval(intervalId);
   }, [player.stage, player.round]);
+
 
   async function getHint() {
     setIsLoading(true);
@@ -47,17 +71,33 @@ export function VerbalFluencyTask() {
     }
   }
 
+  // function handleSendWord() {
+  //   if (currentWord.trim() === "") return;
+
+  //   const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
+  //   setWords(updatedWords);
+  //   player.round.set("words", updatedWords);
+  //   player.round.set("lastWord", currentWord.trim());
+  //   setLastWord(currentWord.trim());
+  //   setCurrentWord("");
+
+  //   // Update the score (count of user words)
+  //   const userWordCount = updatedWords.filter(word => word.source === 'user').length;
+  //   player.round.set("score", userWordCount);
+  // }
+
   function handleSendWord() {
     if (currentWord.trim() === "") return;
-
-    const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
+    const startTime = round.get("startTime");
+    const timestamp = Date.now() - startTime;
+  
+    const updatedWords = [...words, { text: currentWord.trim(), source: 'user', timestamp }];
     setWords(updatedWords);
     player.round.set("words", updatedWords);
     player.round.set("lastWord", currentWord.trim());
     setLastWord(currentWord.trim());
     setCurrentWord("");
-
-    // Update the score (count of user words)
+  
     const userWordCount = updatedWords.filter(word => word.source === 'user').length;
     player.round.set("score", userWordCount);
   }

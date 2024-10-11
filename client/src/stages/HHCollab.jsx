@@ -20,21 +20,37 @@ export function HHCollab() {
     player.round.set("score", words.filter(word => word.source === 'main').length); //set both players' score to main player's word count   
   }, [round.get("words")]);
 
+//   function handleSendWord() {
+//     if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
+
+//     const words = round.get("words") || [];
+//     const updatedWords = [...words, { text: currentWord.trim(), source: isMain ? 'main' : 'helper' }];
+//     round.set("words", updatedWords);
+//     setCurrentWord("");
+
+//     if (!isMain) {
+//       round.set("waitingForAssistant", false);
+//     }
+
+//     // const mainWordCount = updatedWords.filter(word => word.source === 'main').length;
+//     // player.round.set("score", mainWordCount); //set both players' score to main player's word count
+//   } 
+
   function handleSendWord() {
-    if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
+  if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
-    const words = round.get("words") || [];
-    const updatedWords = [...words, { text: currentWord.trim(), source: isMain ? 'main' : 'helper' }];
-    round.set("words", updatedWords);
-    setCurrentWord("");
+  const startTime = round.get("startTime");
+  const timestamp = Date.now() - startTime;
 
-    if (!isMain) {
-      round.set("waitingForAssistant", false);
-    }
+  const words = round.get("words") || [];
+  const updatedWords = [...words, { text: currentWord.trim(), source: isMain ? 'main' : 'helper', timestamp }];
+  round.set("words", updatedWords);
+  setCurrentWord("");
 
-    // const mainWordCount = updatedWords.filter(word => word.source === 'main').length;
-    // player.round.set("score", mainWordCount); //set both players' score to main player's word count
-  } 
+  if (!isMain) {
+    round.set("waitingForAssistant", false);
+  }
+}
 
   function handleRequestHint() {
     round.set("waitingForAssistant", true);

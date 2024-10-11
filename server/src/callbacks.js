@@ -122,6 +122,8 @@ Empirica.onGameStart(({ game }) => {
     const roundName = round.get("name");
     console.log(`Round ${roundName} started for game ${game.id}. Treatment:`, treatment);
   
+    round.set("startTime", Date.now());
+    
     game.players.forEach(player => {
       try {
         // Store the treatment and round name for each player
