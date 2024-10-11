@@ -73,12 +73,13 @@ Empirica.onGameStart(({ game }) => {
 
   // Human-human round if playerCount > 1
 
-  // Initial round for testing API interaction
+  // Initial round for testing API interaction - add typing speed test here
   const initialRound = game.addRound({
     name: "testRound",
   });
   initialRound.addStage({ name: "LocalAPI", duration: 300 });
-
+  
+  // Multiplayer rounds
   if (playerCount > 1) {
     const hhRound = game.addRound({
       name: "HHCollab",
@@ -87,6 +88,12 @@ Empirica.onGameStart(({ game }) => {
     hhRound.addStage({ name: "HHCollabResult", duration: 300 });
     hhRound.addStage({ name: "HHCollabSwitched", duration: 30 });
     hhRound.addStage({ name: "HHCollabResultSwitched", duration: 300 });
+
+    const hhInterleavedRound = game.addRound({
+      name: "HHInterleaved",
+    });
+    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
+    hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
   }
 
   // Verbal Fluency Task round
@@ -122,12 +129,14 @@ Empirica.onGameStart(({ game }) => {
       }
     });
     
-    // if (round.get("name") === "HHCollab") {
-    //   const players = round.currentGame.players;
-    //   players.forEach((player, index) => {
-    //     player.set("role", index === 0 ? "main" : "helper");
-    //   });
-    // }
+    if (round.get("name") === "HHInterleaved") {
+      const players = round.currentGame.players;
+      // Randomly choose the first player
+      const firstPlayerId = players[Math.floor(Math.random() * players.length)].id;
+      round.set("currentTurnPlayerId", firstPlayerId);
+      round.set("words", []);
+      round.set("score", 0);
+    }
   });
 
 

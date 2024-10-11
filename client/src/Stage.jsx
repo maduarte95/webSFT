@@ -13,6 +13,8 @@ import { VerbalFluencyCollab } from "./stages/VerbalFluencyCollab.jsx";
 import { VFCollabResult } from "./stages/VFCollabResult.jsx";
 import { HHCollab } from "./stages/HHCollab.jsx";
 import { HHCollabResult } from "./stages/HHCollabResult.jsx";
+import { HHInterleaved } from "./stages/HHInterleaved.jsx";
+import { HHInterleavedResult } from "./stages/HHInterleavedResult.jsx";
 
 export function Stage() {
   const player = usePlayer();
@@ -56,6 +58,15 @@ export function Stage() {
           return <HHCollab />;
         case "HHCollabResultSwitched":
           return <HHCollabResult />;
+        default:
+          return <Loading />;
+      }
+    case "HHInterleaved":
+      switch (stage.get("name")) {
+        case "HHInterleaved":
+          return <HHInterleaved />;
+        case "HHInterleavedResult":
+          return <HHInterleavedResult />;
         default:
           return <Loading />;
       }
