@@ -71,15 +71,14 @@ Empirica.onGameStart(({ game }) => {
   const { playerCount } = treatment;
   console.log("cueType:", cueType);
 
-  // Human-human round if playerCount > 1
-
+  // Human-human rounds if playerCount > 1
   // Initial round for testing API interaction - add typing speed test here
   const initialRound = game.addRound({
     name: "testRound",
   });
   initialRound.addStage({ name: "LocalAPI", duration: 300 });
   
-  // Multiplayer rounds
+  // Self-initiated HH rounds
   if (playerCount > 1) {
     const hhRound = game.addRound({
       name: "HHCollab",
@@ -93,6 +92,22 @@ Empirica.onGameStart(({ game }) => {
     hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 30 });
     hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
     
+  //   const hhInterleavedRound = game.addRound({
+  //     name: "HHInterleaved",
+  //   });
+  //   hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
+  //   hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
+  }
+
+  // Self-initiated H-LLM Verbal Fluency Task round
+  const vftRound = game.addRound({
+    name: "VFTask",
+  });
+  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
+  vftRound.addStage({ name: "VFResult", duration: 300 }); 
+
+  // Interleaved HH round
+  if (playerCount > 1) {
     const hhInterleavedRound = game.addRound({
       name: "HHInterleaved",
     });
@@ -100,19 +115,13 @@ Empirica.onGameStart(({ game }) => {
     hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
   }
 
-  // Verbal Fluency Task round
-  const vftRound = game.addRound({
-    name: "VFTask",
-  });
-  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
-  vftRound.addStage({ name: "VFResult", duration: 300 }); 
-
-  // Verbal Fluency Collaboration round
+  // Interleaved H-LLM Verbal Fluency round
   const vfcRound = game.addRound({
     name: "VFTCollab",
   });
   vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
   vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
+
 
 });
 
@@ -147,6 +156,7 @@ Empirica.onGameStart(({ game }) => {
 
 
   Empirica.onStageStart(({ stage }) => {
+    stage.set("startTime", Date.now());
     if (!stage) {
       console.error("Stage is undefined in onStageStart");
       return;

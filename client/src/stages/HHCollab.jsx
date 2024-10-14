@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer, usePlayers, useRound } from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function HHCollab() {
@@ -10,6 +10,7 @@ export function HHCollab() {
   const partner = players.find(p => p.id !== player.id);
   const isMain = player.get("role") === "main";
   const round = useRound();
+  const stage = useStage();
 
   useEffect(() => {
     const words = round.get("words") || [];
@@ -39,7 +40,7 @@ export function HHCollab() {
   function handleSendWord() {
   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
-  const startTime = round.get("startTime");
+  const startTime = stage.get("startTime");
   const timestamp = Date.now() - startTime;
 
   const words = round.get("words") || [];

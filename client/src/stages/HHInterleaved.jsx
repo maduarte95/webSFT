@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer, usePlayers, useRound } from "@empirica/core/player/classic/react";
+import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function HHInterleaved() {
@@ -10,6 +10,7 @@ export function HHInterleaved() {
   const round = useRound();
   const otherPlayer = players.find(p => p.id !== player.id);
   const isPlayerTurn = round.get("currentTurnPlayerId") === player.id;
+  const stage = useStage();
 
   useEffect(() => {
     const words = round.get("words") || [];
@@ -37,7 +38,7 @@ export function HHInterleaved() {
   function handleSendWord() {
     if (currentWord.trim() === "" || !isPlayerTurn) return;
   
-    const startTime = round.get("startTime");
+    const startTime = stage.get("startTime");
     const timestamp = Date.now() - startTime;
   
     const words = round.get("words") || [];

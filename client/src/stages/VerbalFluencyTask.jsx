@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { usePlayer, useRound } from "@empirica/core/player/classic/react";
+import { usePlayer, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
 export function VerbalFluencyTask() {
@@ -9,6 +9,7 @@ export function VerbalFluencyTask() {
   const [isLoading, setIsLoading] = useState(false);
   const player = usePlayer();
   const round = useRound();
+  const stage = useStage();
 
   useEffect(() => {
     const savedWords = player.round.get("words") || [];
@@ -43,7 +44,7 @@ export function VerbalFluencyTask() {
     const checkForResponse = () => {
       const response = player.stage.get("apiResponse");
       if (response) {
-        const startTime = round.get("startTime");
+        const startTime = stage.get("startTime");
         const timestamp = Date.now() - startTime;
         setWords((currentWords) => {
           const updatedWords = [...currentWords, { text: response, source: 'ai', timestamp }];
@@ -88,7 +89,7 @@ export function VerbalFluencyTask() {
 
   function handleSendWord() {
     if (currentWord.trim() === "") return;
-    const startTime = round.get("startTime");
+    const startTime = stage.get("startTime");
     const timestamp = Date.now() - startTime;
   
     const updatedWords = [...words, { text: currentWord.trim(), source: 'user', timestamp }];
