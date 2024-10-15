@@ -91,12 +91,6 @@ Empirica.onGameStart(({ game }) => {
     });
     hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 30 });
     hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
-    
-  //   const hhInterleavedRound = game.addRound({
-  //     name: "HHInterleaved",
-  //   });
-  //   hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
-  //   hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
   }
 
   // Self-initiated H-LLM Verbal Fluency Task round
@@ -137,6 +131,7 @@ Empirica.onGameStart(({ game }) => {
       try {
         // Store the treatment and round name for each player
         player.set("currentTreatment", treatment);
+        player.round.set("roundName", roundName);
         player.set("currentRoundName", roundName);
         console.log(`Treatment and round name stored for player ${player.id}, round ${roundName}, game ${game.id}`);
       } catch (error) {
@@ -156,12 +151,15 @@ Empirica.onGameStart(({ game }) => {
 
 
   Empirica.onStageStart(({ stage }) => {
-    stage.set("startTime", Date.now());
+    const startTime = Date.now();
+    stage.set("startTime", startTime);
+    console.log(`Stage ${stage.get("name")} started at ${startTime} for game ${stage.currentGame.id}`);
+    
     if (!stage) {
       console.error("Stage is undefined in onStageStart");
       return;
     }
-  
+    
     const stageName = stage.get("name");
     const game = stage.currentGame;
     const treatment = game.get("treatment");

@@ -11,6 +11,7 @@ export function HHCollab() {
   const isMain = player.get("role") === "main";
   const round = useRound();
   const stage = useStage();
+  console.log(`Component rendered. Start time: ${stage.get("startTime")}, Current time: ${Date.now()}`);
 
   useEffect(() => {
     const words = round.get("words") || [];
@@ -19,23 +20,7 @@ export function HHCollab() {
       setLastWord(lastSavedWord.source === 'helper' ? `Assistant: ${lastSavedWord.text}` : lastSavedWord.text);
     }
     player.round.set("score", words.filter(word => word.source === 'main').length); //set both players' score to main player's word count   
-  }, [round.get("words")]);
-
-//   function handleSendWord() {
-//     if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
-
-//     const words = round.get("words") || [];
-//     const updatedWords = [...words, { text: currentWord.trim(), source: isMain ? 'main' : 'helper' }];
-//     round.set("words", updatedWords);
-//     setCurrentWord("");
-
-//     if (!isMain) {
-//       round.set("waitingForAssistant", false);
-//     }
-
-//     // const mainWordCount = updatedWords.filter(word => word.source === 'main').length;
-//     // player.round.set("score", mainWordCount); //set both players' score to main player's word count
-//   } 
+  }, [round.get("words")]); //updates when words change
 
   function handleSendWord() {
   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
@@ -55,6 +40,14 @@ export function HHCollab() {
 
   function handleRequestHint() {
     round.set("waitingForAssistant", true);
+    //make a requestTimestamp list 
+    const requestTimestamps = round.get("requestTimestamps") || [];
+    const startTime = stage.get("startTime");
+    const timestamp = Date.now() - startTime;
+    const updatedTimestamps = [...requestTimestamps, timestamp];
+    round.set("requestTimestamps", updatedTimestamps);
+    //print the requestTimestamps list
+    console.log("New hint request!", updatedTimestamps);
   }
 
   function handleKeyDown(event) {

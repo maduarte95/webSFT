@@ -9,29 +9,12 @@ export function VerbalFluencyCollab() {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
+  player.round.set("roundName", "InterleavedLLM");
 
   useEffect(() => {
     const savedWords = player.round.get("words") || [];
     setWords(savedWords);
   }, [player.round]);
-
-  // useEffect(() => {
-  //   const checkForResponse = () => {
-  //     const response = player.stage.get("apiResponse");
-  //     if (response) {
-  //       setWords((currentWords) => {
-  //         const updatedWords = [...currentWords, { text: response, source: 'ai' }];
-  //         player.round.set("words", updatedWords);
-  //         return updatedWords;
-  //       });
-  //       setIsWaitingForAI(false);
-  //       player.stage.set("apiResponse", null); // Clear the response
-  //     }
-  //   };
-
-  //   const intervalId = setInterval(checkForResponse, 1000);
-  //   return () => clearInterval(intervalId);
-  // }, [player.stage, player.round]);
 
   useEffect(() => {
     const checkForResponse = () => {
@@ -49,8 +32,8 @@ export function VerbalFluencyCollab() {
       }
     };
   
-    const intervalId = setInterval(checkForResponse, 1000);
-    return () => clearInterval(intervalId);
+    // const intervalId = setInterval(checkForResponse, 1000);
+    // return () => clearInterval(intervalId);
   }, [player.stage, player.round]);
 
   async function triggerAIResponse() {
@@ -63,24 +46,6 @@ export function VerbalFluencyCollab() {
     }
   }
 
-  // function handleSendWord() {
-  //   if (currentWord.trim() === "" || isWaitingForAI) return;
-
-  //   const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
-  //   setWords(updatedWords);
-  //   player.round.set("words", updatedWords);
-  //   player.round.set("lastWord", currentWord.trim());
-  //   setCurrentWord("");
-  //   triggerAIResponse();
-
-  //   // Update the score (count of user words)
-  //   // const userWordCount = updatedWords.filter(word => word.source === 'user').length;
-  //   // player.round.set("score", userWordCount);
-
-  //   //set the score to the total number of words
-  //   const totalWordCount = updatedWords.length;
-  //   player.round.set("score", totalWordCount);
-  // }
 
   function handleSendWord() {
     if (currentWord.trim() === "" || isWaitingForAI) return;

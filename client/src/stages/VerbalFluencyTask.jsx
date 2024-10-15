@@ -10,6 +10,7 @@ export function VerbalFluencyTask() {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
+  player.round.set("roundName", "SelfiInitiatedLLM");
 
   useEffect(() => {
     const savedWords = player.round.get("words") || [];
@@ -20,24 +21,6 @@ export function VerbalFluencyTask() {
     }
   }, [player.round]);
 
-  // useEffect(() => {
-  //   const checkForResponse = () => {
-  //     const response = player.stage.get("apiResponse");
-  //     if (response) {
-  //       setWords((currentWords) => {
-  //         const updatedWords = [...currentWords, { text: response, source: 'ai' }];
-  //         player.round.set("words", updatedWords);
-  //         return updatedWords;
-  //       });
-  //       setLastWord(`AI Hint: ${response}`);
-  //       setIsLoading(false);
-  //       player.stage.set("apiResponse", null); // Clear the response
-  //     }
-  //   };
-
-  //   const intervalId = setInterval(checkForResponse, 1000);
-  //   return () => clearInterval(intervalId);
-  // }, [player.stage, player.round]);
   
   // Also update the useEffect that handles AI responses
   useEffect(() => {
@@ -45,6 +28,10 @@ export function VerbalFluencyTask() {
       const response = player.stage.get("apiResponse");
       if (response) {
         const startTime = stage.get("startTime");
+        if (!startTime) {
+          console.error("Start time is not set yet.");
+          return;
+        }
         const timestamp = Date.now() - startTime;
         setWords((currentWords) => {
           const updatedWords = [...currentWords, { text: response, source: 'ai', timestamp }];
@@ -57,12 +44,26 @@ export function VerbalFluencyTask() {
       }
     };
   
-    const intervalId = setInterval(checkForResponse, 1000);
-    return () => clearInterval(intervalId);
+    // const intervalId = setInterval(checkForResponse, 1000);
+    // return () => clearInterval(intervalId);
   }, [player.stage, player.round]);
 
 
   async function getHint() {
+     //make a requestTimestamp list and save to player.round; not saved to round because players play independently
+     const startTime = stage.get("startTime");
+     if (!startTime) {
+      console.error("Start time is not set yet.");
+      return;
+    }
+  
+     const requestTimestamps = player.round.get("requestTimestamps") || [];
+     const timestamp = Date.now() - startTime; //giving negative timestamps, why? A: timestamp is calculated before startTime is set why? A: because the startTime is set after the first render
+     const updatedTimestamps = [...requestTimestamps, timestamp];
+     player.round.set("requestTimestamps", updatedTimestamps);
+     //print the requestTimestamps list
+     console.log("New hint request!", updatedTimestamps);
+
     setIsLoading(true);
     try {
       await player.set("apiTrigger", true);
@@ -72,24 +73,15 @@ export function VerbalFluencyTask() {
     }
   }
 
-  // function handleSendWord() {
-  //   if (currentWord.trim() === "") return;
-
-  //   const updatedWords = [...words, { text: currentWord.trim(), source: 'user' }];
-  //   setWords(updatedWords);
-  //   player.round.set("words", updatedWords);
-  //   player.round.set("lastWord", currentWord.trim());
-  //   setLastWord(currentWord.trim());
-  //   setCurrentWord("");
-
-  //   // Update the score (count of user words)
-  //   const userWordCount = updatedWords.filter(word => word.source === 'user').length;
-  //   player.round.set("score", userWordCount);
-  // }
 
   function handleSendWord() {
     if (currentWord.trim() === "") return;
     const startTime = stage.get("startTime");
+
+    if (!startTime) {
+      console.error("Start time is not set yet.");
+      return;
+    }
     const timestamp = Date.now() - startTime;
   
     const updatedWords = [...words, { text: currentWord.trim(), source: 'user', timestamp }];
