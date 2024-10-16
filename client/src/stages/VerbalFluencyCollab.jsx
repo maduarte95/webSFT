@@ -2,66 +2,157 @@ import React, { useState, useEffect } from "react";
 import { usePlayer, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
+let hintRequestCount = 0;
+let lastHintRequestTime = 0;
+
 export function VerbalFluencyCollab() {
-  const [words, setWords] = useState([]);
   const [currentWord, setCurrentWord] = useState("");
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
-  player.round.set("roundName", "InterleavedLLM");
+  // player.round.set("roundName", "InterleavedLLM");
 
   useEffect(() => {
-    const savedWords = player.round.get("words") || [];
-    setWords(savedWords);
-  }, [player.round]);
+    player.round.set("roundName", "InterleavedLLM");
+    console.log(`Component rendered. Start time: ${stage.get("serverStartTime")}, Current time: ${Date.now()}`);
+  }, []);
 
   useEffect(() => {
-    const checkForResponse = () => {
-      const response = player.stage.get("apiResponse");
-      if (response) {
-        const startTime = stage.get("startTime");
-        const timestamp = Date.now() - startTime;
-        setWords((currentWords) => {
-          const updatedWords = [...currentWords, { text: response, source: 'ai', timestamp }];
-          player.round.set("words", updatedWords);
-          return updatedWords;
-        });
-        setIsWaitingForAI(false);
-        player.stage.set("apiResponse", null);
-      }
-    };
+    const words = player.round.get("words") || [];
+    const totalWordCount = words.length;
+    player.round.set("score", totalWordCount);
+  }, [player.round.get("words")]);
+
+  useEffect(() => {
+    const response = player.stage.get("apiResponse");
+    if (response) {
+      handleAIResponse(response);
+    }
+  }, [player.stage.get("apiResponse")]);
+
+  async function getServerTimestamp() {
+    console.log("Requesting server timestamp");
+    player.set("requestTimestamp", true);
+    
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    return new Promise((resolve) => {
+      const checkTimestamp = () => {
+        const timestamp = player.get("serverTimestamp");
+        if (timestamp !== undefined) {
+          console.log("Received server timestamp:", timestamp);
+          resolve(timestamp);
+        } else {
+          setTimeout(checkTimestamp, 50);
+        }
+      };
+      checkTimestamp();
+    });
+  }
+
+  async function handleSendWord() {
+    if (currentWord.trim() === "" || isWaitingForAI) return;
   
-    // const intervalId = setInterval(checkForResponse, 1000);
-    // return () => clearInterval(intervalId);
-  }, [player.stage, player.round]);
+    const clientStartTime = Date.now();
+    console.log(`Word submission initiated at client time: ${clientStartTime}`);
+  
+    const timestamp = await getServerTimestamp();
+    const serverStartTime = stage.get("serverStartTime");
+    const clientEndTime = Date.now();
+  
+    console.log(`Word submission details:
+      Word: ${currentWord.trim()}
+      Request start time: ${clientStartTime}
+      Request end time: ${clientEndTime}
+      Request duration: ${clientEndTime - clientStartTime}ms
+      Server timestamp: ${timestamp}
+      Server start time: ${serverStartTime}
+      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+  
+    if (serverStartTime && timestamp) {
+      const relativeTimestamp = timestamp - serverStartTime;
+      const words = player.round.get("words") || [];
+      const updatedWords = [...words, { 
+        text: currentWord.trim(), 
+        source: 'user', 
+        timestamp: relativeTimestamp 
+      }];
+      player.round.set("words", updatedWords);
+      player.round.set("lastWord", currentWord.trim());
+      setCurrentWord("");
+  
+      console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+      triggerAIResponse();
+    } else {
+      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+    }
+  }
 
   async function triggerAIResponse() {
+    hintRequestCount++;
+    const clientStartTime = Date.now();
+    console.log(`AI response request #${hintRequestCount} initiated at client time: ${clientStartTime}`);
+
     setIsWaitingForAI(true);
-    try {
-      await player.set("apiTrigger", true);
-    } catch (error) {
-      console.error("Failed to trigger API call", error);
+    const timestamp = await getServerTimestamp();
+    const serverStartTime = stage.get("serverStartTime");
+    const clientEndTime = Date.now();
+
+    console.log(`AI response request #${hintRequestCount} details:
+      Request start time: ${clientStartTime}
+      Request end time: ${clientEndTime}
+      Request duration: ${clientEndTime - clientStartTime}ms
+      Server timestamp: ${timestamp}
+      Server start time: ${serverStartTime}
+      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+    if (serverStartTime && timestamp) {
+      const relativeTimestamp = timestamp - serverStartTime;
+      const requestTimestamps = player.round.get("requestTimestamps") || [];
+      const updatedTimestamps = [...requestTimestamps, relativeTimestamp];
+      player.round.set("requestTimestamps", updatedTimestamps);
+      console.log(`Updated timestamps for request #${hintRequestCount}: ${JSON.stringify(updatedTimestamps)}`);
+
+      lastHintRequestTime = timestamp;
+
+      try {
+        await player.set("apiTrigger", true);
+      } catch (error) {
+        console.error("Failed to trigger API call", error);
+        setIsWaitingForAI(false);
+      }
+    } else {
+      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
       setIsWaitingForAI(false);
     }
   }
 
+  async function handleAIResponse(response) {
+    const timestamp = await getServerTimestamp();
+    const serverStartTime = stage.get("serverStartTime");
 
-  function handleSendWord() {
-    if (currentWord.trim() === "" || isWaitingForAI) return;
-  
-    const startTime = stage.get("startTime");
-    const timestamp = Date.now() - startTime;
-  
-    const updatedWords = [...words, { text: currentWord.trim(), source: 'user', timestamp }];
-    setWords(updatedWords);
-    player.round.set("words", updatedWords);
-    player.round.set("lastWord", currentWord.trim());
-    setCurrentWord("");
-    triggerAIResponse();
-  
-    const totalWordCount = updatedWords.length;
-    player.round.set("score", totalWordCount);
+    if (serverStartTime && timestamp && lastHintRequestTime) {
+      const relativeTimestamp = timestamp - serverStartTime;
+      const apiLatency = timestamp - lastHintRequestTime;
+
+      console.log(`LLM API Response Latency: ${apiLatency}ms`);
+
+      const words = player.round.get("words") || [];
+      const updatedWords = [...words, { 
+        text: response, 
+        source: 'ai', 
+        timestamp: relativeTimestamp,
+        apiLatency: apiLatency
+      }];
+      player.round.set("words", updatedWords);
+      setIsWaitingForAI(false);
+      player.stage.set("apiResponse", null);
+
+      console.log(`AI response added. Updated words: ${JSON.stringify(updatedWords)}`);
+    } else {
+      console.error("Invalid timestamp or start time for AI response", { timestamp, serverStartTime, lastHintRequestTime });
+    }
   }
 
   function handleKeyDown(event) {
@@ -69,6 +160,8 @@ export function VerbalFluencyCollab() {
       handleSendWord();
     }
   }
+
+  const words = player.round.get("words") || [];
 
   return (
     <div className="flex flex-col items-center justify-center h-full">

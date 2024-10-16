@@ -71,12 +71,39 @@ Empirica.onGameStart(({ game }) => {
   const { playerCount } = treatment;
   console.log("cueType:", cueType);
 
+  
+  
+  // Interleaved HH round
+  if (playerCount > 1) {
+    const hhInterleavedRound = game.addRound({
+      name: "HHInterleaved",
+    });
+    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
+    hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
+  }
+
+  // Interleaved H-LLM Verbal Fluency round
+  const vfcRound = game.addRound({
+    name: "VFTCollab",
+  });
+  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 30 });
+  vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
+
+
   // Human-human rounds if playerCount > 1
   // Initial round for testing API interaction - add typing speed test here
   const initialRound = game.addRound({
     name: "testRound",
   });
   initialRound.addStage({ name: "LocalAPI", duration: 300 });
+
+  // Self-initiated H-LLM Verbal Fluency Task round
+  const vftRound = game.addRound({
+    name: "VFTask",
+  });
+  vftRound.addStage({ name: "VerbalFluencyTask", duration: 30 }); //actual duration 180
+  vftRound.addStage({ name: "VFResult", duration: 300 }); 
+
   
   // Self-initiated HH rounds
   if (playerCount > 1) {
@@ -93,29 +120,6 @@ Empirica.onGameStart(({ game }) => {
     hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
   }
 
-  // Self-initiated H-LLM Verbal Fluency Task round
-  const vftRound = game.addRound({
-    name: "VFTask",
-  });
-  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
-  vftRound.addStage({ name: "VFResult", duration: 300 }); 
-
-  // Interleaved HH round
-  if (playerCount > 1) {
-    const hhInterleavedRound = game.addRound({
-      name: "HHInterleaved",
-    });
-    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
-    hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
-  }
-
-  // Interleaved H-LLM Verbal Fluency round
-  const vfcRound = game.addRound({
-    name: "VFTCollab",
-  });
-  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
-  vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
-
 
 });
 
@@ -125,7 +129,7 @@ Empirica.onGameStart(({ game }) => {
     const roundName = round.get("name");
     console.log(`Round ${roundName} started for game ${game.id}. Treatment:`, treatment);
   
-    round.set("startTime", Date.now());
+    // round.set("startTime", Date.now());
     
     game.players.forEach(player => {
       try {
@@ -151,10 +155,6 @@ Empirica.onGameStart(({ game }) => {
 
 
   Empirica.onStageStart(({ stage }) => {
-    // const startTime = Date.now();
-    // stage.set("startTime", startTime);
-    // console.log(`Stage ${stage.get("name")} started at ${startTime} for game ${stage.currentGame.id}`);
-
     const startTime = Date.now();
     stage.set("serverStartTime", startTime);
     console.log(`Server start time set for stage ${stage.get("name")} at ${startTime} for game ${stage.currentGame.id}`);

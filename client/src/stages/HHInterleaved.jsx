@@ -22,19 +22,64 @@ export function HHInterleaved() {
     player.round.set("score", words.length); //set both players' score to total word count  
   }, [round.get("words"), player.id]); 
 
-  function handleSendWord() {
+
+  async function getServerTimestamp() {
+    console.log("Requesting server timestamp");
+    player.set("requestTimestamp", true);
+    
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    return new Promise((resolve) => {
+      const checkTimestamp = () => {
+        const timestamp = player.get("serverTimestamp");
+        if (timestamp !== undefined) {
+          console.log("Received server timestamp:", timestamp);
+          resolve(timestamp);
+        } else {
+          setTimeout(checkTimestamp, 50);
+        }
+      };
+      checkTimestamp();
+    });
+  }
+
+  async function handleSendWord() {
     if (currentWord.trim() === "" || !isPlayerTurn) return;
   
-    const startTime = stage.get("startTime");
-    const timestamp = Date.now() - startTime;
-  
-    const words = round.get("words") || [];
-    const updatedWords = [...words, { text: currentWord.trim(), player: player.id, timestamp }];
-    round.set("words", updatedWords);
-    setCurrentWord("");
-  
-    // Switch turns
-    round.set("currentTurnPlayerId", otherPlayer.id);
+    const clientStartTime = Date.now();
+    console.log(`Word submission initiated at client time: ${clientStartTime}`);
+
+    const timestamp = await getServerTimestamp();
+    const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+    const clientEndTime = Date.now();
+
+    console.log(`Word submission details:
+      Word: ${currentWord.trim()}
+      Request start time: ${clientStartTime}
+      Request end time: ${clientEndTime}
+      Request duration: ${clientEndTime - clientStartTime}ms
+      Server timestamp: ${timestamp}
+      Server start time: ${serverStartTime}
+      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+    if (serverStartTime && timestamp) {
+      const relativeTimestamp = timestamp - serverStartTime;
+      const words = round.get("words") || [];
+      const updatedWords = [...words, { 
+        text: currentWord.trim(), 
+        player: player.id, 
+        timestamp: relativeTimestamp 
+      }];
+      round.set("words", updatedWords);
+      setCurrentWord("");
+    
+      // Switch turns
+      round.set("currentTurnPlayerId", otherPlayer.id);
+
+      console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+    } else {
+      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+    }
   }
 
   function handleKeyDown(event) {

@@ -47,28 +47,6 @@ export function HHCollab() {
   }
 
 
-
-// function handleSendWord() {
-//   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
-
-//   const timestamp = getServerTimestamp();
-//   const serverStartTime = stage.get("serverStartTime");
-//   const relativeTimestamp = timestamp - serverStartTime;
-
-//   const words = round.get("words") || [];
-//   const updatedWords = [...words, { 
-//     text: currentWord.trim(), 
-//     source: isMain ? 'main' : 'helper', 
-//     timestamp: relativeTimestamp 
-//   }];
-//   round.set("words", updatedWords);
-//   setCurrentWord("");
-
-//   if (!isMain) {
-//     round.set("waitingForAssistant", false);
-//   }
-// }
-
 async function handleSendWord() {
   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
