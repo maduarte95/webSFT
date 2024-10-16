@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
+let hintRequestCount = 0;
+
 export function HHCollab() {
   const [currentWord, setCurrentWord] = useState("");
   const [lastWord, setLastWord] = useState("");
@@ -11,7 +13,7 @@ export function HHCollab() {
   const isMain = player.get("role") === "main";
   const round = useRound();
   const stage = useStage();
-  console.log(`Component rendered. Start time: ${stage.get("startTime")}, Current time: ${Date.now()}`);
+  console.log(`Component rendered. Start time: ${stage.get("serverStartTime")}, Current time: ${Date.now()}`);
 
   useEffect(() => {
     const words = round.get("words") || [];
@@ -22,32 +24,118 @@ export function HHCollab() {
     player.round.set("score", words.filter(word => word.source === 'main').length); //set both players' score to main player's word count   
   }, [round.get("words")]); //updates when words change
 
-  function handleSendWord() {
+
+  async function getServerTimestamp() {
+    console.log("Requesting server timestamp");
+    player.set("requestTimestamp", true);
+    
+    // Add a small delay to ensure the server processes the request
+    await new Promise(resolve => setTimeout(resolve, 50));
+    
+    return new Promise((resolve) => {
+      const checkTimestamp = () => {
+        const timestamp = player.get("serverTimestamp");
+        if (timestamp !== undefined) {
+          console.log("Received server timestamp:", timestamp);
+          resolve(timestamp);
+        } else {
+          setTimeout(checkTimestamp, 50);
+        }
+      };
+      checkTimestamp();
+    });
+  }
+
+
+
+// function handleSendWord() {
+//   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
+
+//   const timestamp = getServerTimestamp();
+//   const serverStartTime = stage.get("serverStartTime");
+//   const relativeTimestamp = timestamp - serverStartTime;
+
+//   const words = round.get("words") || [];
+//   const updatedWords = [...words, { 
+//     text: currentWord.trim(), 
+//     source: isMain ? 'main' : 'helper', 
+//     timestamp: relativeTimestamp 
+//   }];
+//   round.set("words", updatedWords);
+//   setCurrentWord("");
+
+//   if (!isMain) {
+//     round.set("waitingForAssistant", false);
+//   }
+// }
+
+async function handleSendWord() {
   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
-  const startTime = stage.get("startTime");
-  const timestamp = Date.now() - startTime;
+  const clientStartTime = Date.now();
+  console.log(`Word submission initiated at client time: ${clientStartTime}`);
 
-  const words = round.get("words") || [];
-  const updatedWords = [...words, { text: currentWord.trim(), source: isMain ? 'main' : 'helper', timestamp }];
-  round.set("words", updatedWords);
-  setCurrentWord("");
+  const timestamp = await getServerTimestamp();
+  const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+  const clientEndTime = Date.now();
 
-  if (!isMain) {
-    round.set("waitingForAssistant", false);
+  console.log(`Word submission details:
+    Word: ${currentWord.trim()}
+    Request start time: ${clientStartTime}
+    Request end time: ${clientEndTime}
+    Request duration: ${clientEndTime - clientStartTime}ms
+    Server timestamp: ${timestamp}
+    Server start time: ${serverStartTime}
+    Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+  if (serverStartTime && timestamp) {
+    const relativeTimestamp = timestamp - serverStartTime;
+    const words = round.get("words") || [];
+    const updatedWords = [...words, { 
+      text: currentWord.trim(), 
+      source: isMain ? 'main' : 'helper', 
+      timestamp: relativeTimestamp 
+    }];
+    round.set("words", updatedWords);
+    setCurrentWord("");
+
+    if (!isMain) {
+      round.set("waitingForAssistant", false);
+    }
+
+    console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+  } else {
+    console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
   }
 }
 
-  function handleRequestHint() {
+  async function handleRequestHint() {
+    hintRequestCount++;
+    const clientStartTime = Date.now();
+    console.log(`Hint request #${hintRequestCount} initiated at client time: ${clientStartTime}`);
+    
     round.set("waitingForAssistant", true);
-    //make a requestTimestamp list 
-    const requestTimestamps = round.get("requestTimestamps") || [];
-    const startTime = stage.get("startTime");
-    const timestamp = Date.now() - startTime;
-    const updatedTimestamps = [...requestTimestamps, timestamp];
-    round.set("requestTimestamps", updatedTimestamps);
-    //print the requestTimestamps list
-    console.log("New hint request!", updatedTimestamps);
+    const timestamp = await getServerTimestamp();
+    const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+    const clientEndTime = Date.now();
+
+    console.log(`Hint request #${hintRequestCount} details:
+      Request start time: ${clientStartTime}
+      Request end time: ${clientEndTime}
+      Request duration: ${clientEndTime - clientStartTime}ms
+      Server timestamp: ${timestamp}
+      Server start time: ${serverStartTime}
+      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+    if (serverStartTime && timestamp) {
+      const relativeTimestamp = timestamp - serverStartTime;
+      const requestTimestamps = round.get("requestTimestamps") || [];
+      const updatedTimestamps = [...requestTimestamps, relativeTimestamp];
+      round.set("requestTimestamps", updatedTimestamps);
+      console.log(`Updated timestamps for request #${hintRequestCount}: ${JSON.stringify(updatedTimestamps)}`);
+    } else {
+      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+    }
   }
 
   function handleKeyDown(event) {

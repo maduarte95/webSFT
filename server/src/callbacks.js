@@ -151,9 +151,13 @@ Empirica.onGameStart(({ game }) => {
 
 
   Empirica.onStageStart(({ stage }) => {
+    // const startTime = Date.now();
+    // stage.set("startTime", startTime);
+    // console.log(`Stage ${stage.get("name")} started at ${startTime} for game ${stage.currentGame.id}`);
+
     const startTime = Date.now();
-    stage.set("startTime", startTime);
-    console.log(`Stage ${stage.get("name")} started at ${startTime} for game ${stage.currentGame.id}`);
+    stage.set("serverStartTime", startTime);
+    console.log(`Server start time set for stage ${stage.get("name")} at ${startTime} for game ${stage.currentGame.id}`);
     
     if (!stage) {
       console.error("Stage is undefined in onStageStart");
@@ -263,4 +267,27 @@ Empirica.onGameEnded(({ game }) => {
       console.log(`Cleaned up LLMs for player ${player.id} in game ${game.id}`);
     }
   });
+});
+
+
+Empirica.on("player", "requestTimestamp", (ctx, { player }) => {
+  const currentTime = Date.now();
+  const previousTimestamp = player.get("serverTimestamp");
+  console.log(`Server timestamp request:
+    Player: ${player.id}
+    Current time: ${currentTime}
+    Previous timestamp: ${previousTimestamp}
+    Time since last request: ${previousTimestamp ? currentTime - previousTimestamp : 'N/A'}ms`);
+  
+  player.set("serverTimestamp", currentTime);
+  
+  Empirica.flush().then(() => {
+    const storedTimestamp = player.get("serverTimestamp");
+    console.log(`Timestamp update for player ${player.id}:
+      Set time: ${currentTime}
+      Stored time after flush: ${storedTimestamp}
+      Difference: ${storedTimestamp - currentTime}ms`);
+  });
+  
+  player.set("requestTimestamp", false);
 });
