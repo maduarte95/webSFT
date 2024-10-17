@@ -13,6 +13,8 @@ export function HHCollab() {
   const isMain = player.get("role") === "main"; //replace with player.stage.get("role") if using stage role
   const round = useRound();
   const stage = useStage();
+  const category = player.round.get("category");
+  console.log("Category:", category);
   console.log(`Component rendered. Start time: ${stage.get("serverStartTime")}, Current time: ${Date.now()}`);
 
   useEffect(() => {
@@ -124,7 +126,7 @@ async function handleSendWord() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Collaborative Animal Naming</h2>
+      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category} </h2>
       <div className="mt-8 text-4xl font-bold mb-8">
         {lastWord || "No words yet"}
       </div>
