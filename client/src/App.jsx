@@ -19,7 +19,8 @@ export default function App() {
   const url = `${protocol}//${host}/query`;
 
   function introSteps({ game, player }) {
-    return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
+    // return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
+    return [Introduction];
   }
 
   function exitSteps({ game, player }) {
