@@ -7,6 +7,10 @@ export const Empirica = new ClassicListenersCollector();
 
 // Create a nested map to store LLM instances for each player and round
 const playerRoundLLMs = new Map();
+// // Load LLM configuration
+// const configPath = path.join(__dirname, '..', 'llm_config.json');
+// const llmConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
 
 function readPromptFile(filePath) {
   try {
@@ -17,13 +21,13 @@ function readPromptFile(filePath) {
   }
 }
 
+
 function getOrCreateLLM(playerId, roundName, stageName, treatment) {
   const key = `${playerId}-${roundName}-${stageName}`;
   console.log(`Getting or creating LLM for key: ${key}. Treatment:`, treatment);
   
   if (!playerRoundLLMs.has(key)) {
     let systemPrompt = "";
-    const model = "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo";
 
     if (roundName === "VFTask" || roundName === "VFTCollab") {
       if (treatment && treatment.cueType === "adjacent") {
@@ -51,7 +55,7 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment) {
     console.log(`Creating new LLM for key ${key} with systemPrompt: ${systemPrompt || "No system prompt"}`);
     
     try {
-      playerRoundLLMs.set(key, new LLM(systemPrompt, model));
+      playerRoundLLMs.set(key, new LLM(systemPrompt));
       console.log(`LLM created for key ${key}`);
     } catch (error) {
       console.error(`Error creating LLM for key ${key}:`, error);
