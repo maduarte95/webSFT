@@ -10,7 +10,7 @@ export function HHCollab() {
   const player = usePlayer();
   const players = usePlayers();
   const partner = players.find(p => p.id !== player.id);
-  const isMain = player.get("role") === "main";
+  const isMain = player.get("role") === "main"; //replace with player.stage.get("role") if using stage role
   const round = useRound();
   const stage = useStage();
   console.log(`Component rendered. Start time: ${stage.get("serverStartTime")}, Current time: ${Date.now()}`);

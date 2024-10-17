@@ -26,7 +26,6 @@ factors:
     name: selfOrder
     values: #write all possible values
 
-  
 
 treatments:
   - desc: Adjacent LLM cues
