@@ -13,6 +13,7 @@ export function VerbalFluencyTask() {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
+  const category = player.round.get("category");
   
   useEffect(() => {
     player.round.set("roundName", "SelfInitiatedLLM");
@@ -173,7 +174,7 @@ export function VerbalFluencyTask() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Animals</h2>
+      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
       <div className="mt-8 text-4xl font-bold">
         {lastWord}
       </div>

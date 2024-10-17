@@ -7,8 +7,8 @@ export const Empirica = new ClassicListenersCollector();
 
 const categoryMap = {
   A: "animals",
-  S: "supermarket",
-  C: "clothing"
+  S: "supermarket items",
+  C: "clothing items"
 };
 
 // Create a nested map to store LLM instances for each player and round
@@ -28,11 +28,64 @@ function readPromptFile(filePath) {
 }
 
 
-function getOrCreateLLM(playerId, roundName, stageName, treatment) {
+// function getOrCreateLLM(playerId, roundName, stageName, treatment) {
+//   const key = `${playerId}-${roundName}-${stageName}`;
+//   console.log(`Checking LLM for key: ${key}. Treatment:`, treatment);
+  
+//   // Only create LLMs for specific stages that require them
+//   const llmRequiredStages = ["VerbalFluencyCollab", "VerbalFluencyTask", "LocalAPI"];
+  
+//   if (!llmRequiredStages.includes(stageName)) {
+//     console.log(`LLM not required for stage: ${stageName}`);
+//     return null;
+//   }
+
+//   if (!playerRoundLLMs.has(key)) {
+//     let systemPrompt = "";
+
+//     if (stageName === "VerbalFluencyCollab" || stageName === "VerbalFluencyTask") {
+//       if (treatment && treatment.cueType === "adjacent") {
+//         const promptPath = path.join(__dirname, '..', 'prompts', 'adjacent.txt');
+//         systemPrompt = readPromptFile(promptPath);
+//       } else if (treatment && treatment.cueType === "divergent") {
+//         const promptPath = path.join(__dirname, '..', 'prompts', 'divergent.txt');
+//         systemPrompt = readPromptFile(promptPath);
+//       } else if (treatment && treatment.cueType === "inferred") {
+//         const promptPath = path.join(__dirname, '..', 'prompts', 'inferred.txt');
+//         systemPrompt = readPromptFile(promptPath);
+//       }
+      
+//       if (!systemPrompt) {
+//         systemPrompt = "You are an assistant helping with a verbal fluency task about animals. Provide single-word animal names as responses. Do not repeat animal names that have already been mentioned.";
+//         console.warn(`Warning: Using default prompt for stage ${stageName}. Treatment: ${JSON.stringify(treatment)}`);
+//       }
+//     } else if (stageName === "LocalAPI") {
+//       console.log(`Creating LLM for LocalAPI stage without a specific system prompt.`);
+//     } else {
+//       console.warn(`Unexpected stage name: ${stageName}. Using a generic system prompt.`);
+//       systemPrompt = "You are a helpful assistant. Please respond to the user's queries.";
+//     }
+
+//     console.log(`Creating new LLM for key ${key} with systemPrompt: ${systemPrompt || "No system prompt"}`);
+    
+//     try {
+//       playerRoundLLMs.set(key, new LLM(systemPrompt));
+//       console.log(`LLM created for key ${key}`);
+//     } catch (error) {
+//       console.error(`Error creating LLM for key ${key}:`, error);
+//       throw error;
+//     }
+//   } else {
+//     console.log(`Existing LLM found for key ${key}`);
+//   }
+  
+//   return playerRoundLLMs.get(key);
+// }
+
+function getOrCreateLLM(playerId, roundName, stageName, treatment, category) {
   const key = `${playerId}-${roundName}-${stageName}`;
   console.log(`Checking LLM for key: ${key}. Treatment:`, treatment);
   
-  // Only create LLMs for specific stages that require them
   const llmRequiredStages = ["VerbalFluencyCollab", "VerbalFluencyTask", "LocalAPI"];
   
   if (!llmRequiredStages.includes(stageName)) {
@@ -56,8 +109,11 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment) {
       }
       
       if (!systemPrompt) {
-        systemPrompt = "You are an assistant helping with a verbal fluency task about animals. Provide single-word animal names as responses. Do not repeat animal names that have already been mentioned.";
+        systemPrompt = `You are an assistant helping with a verbal fluency task about ${category}. Provide single-word ${category} names as responses. Do not repeat ${category} names that have already been mentioned.`;
         console.warn(`Warning: Using default prompt for stage ${stageName}. Treatment: ${JSON.stringify(treatment)}`);
+      } else {
+        // Replace <category> placeholder with actual category
+        systemPrompt = systemPrompt.replace(/<category>/g, category);
       }
     } else if (stageName === "LocalAPI") {
       console.log(`Creating LLM for LocalAPI stage without a specific system prompt.`);
@@ -244,17 +300,38 @@ Empirica.onStageStart(({ stage }) => {
   const treatment = game.get("treatment");
   console.log(`Stage ${stageName} started for game ${game.id}. Treatment:`, treatment);
 
+  // const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
+
+  // if (llmStages.includes(stageName)) {
+  //   game.players.forEach(player => {
+  //     try {
+  //       const roundName = player.currentRound.get("name");
+  //       const llm = getOrCreateLLM(player.id, roundName, stageName, treatment);
+  //       if (llm) {
+  //         console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}`);
+  //       } else {
+  //         console.log(`onStageStart LLM not required for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}`);
+  //       }
+  //     } catch (error) {
+  //       console.error(`onStageStart Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
+  //     }
+  //   });
+  // } else {
+  //   console.log(`Stage ${stageName} does not require LLM creation.`);
+  // }
+
   const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
 
   if (llmStages.includes(stageName)) {
     game.players.forEach(player => {
       try {
         const roundName = player.currentRound.get("name");
-        const llm = getOrCreateLLM(player.id, roundName, stageName, treatment);
+        const category = player.currentRound.get("category");
+        const llm = getOrCreateLLM(player.id, roundName, stageName, treatment, category);
         if (llm) {
-          console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}`);
+          console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
         } else {
-          console.log(`onStageStart LLM not required for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}`);
+          console.log(`onStageStart LLM not required for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
         }
       } catch (error) {
         console.error(`onStageStart Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
@@ -287,6 +364,64 @@ Empirica.onStageEnded(({ stage }) => {
 });
 
 
+// Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
+//   console.log(`API trigger changed for player ${player.id} in game ${player.currentGame.id}`);
+//   const currentStage = player.currentStage;
+//   const currentRound = player.currentRound;
+//   console.log(`Current stage name: ${currentStage.get("name")}, game ${player.currentGame.id}`);
+
+//   if (!player.get("apiTrigger")) {
+//     console.log(`API trigger is false, skipping API call for player ${player.id}, game ${player.currentGame.id}`);
+//     return;
+//   }
+
+//   console.log(`Processing API call for player ${player.id}, game ${player.currentGame.id}`);
+
+//   try {
+//     // const treatment = currentRound.get("treatment");´
+//     const treatment = player.currentGame.get("treatment");
+//     if (!treatment) {
+//       throw new Error("Treatment not found for the current round");
+//     }
+//     console.log(`Treatment for current round: ${JSON.stringify(treatment)}`);
+    
+//     const roundName = currentRound.get("name");
+//     console.log(`onTrigger called, cueType: ${treatment.cueType}, roundName: ${roundName}`);
+//     const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment);
+//     console.log(`onTrigger - LLM retrieved for player ${player.id}, game ${player.currentGame.id}`);
+
+//     let userPrompt;
+//     switch (currentStage.get("name")) {
+//       case "apiInteraction":
+//       case "LocalAPI":
+//         userPrompt = "Cheesed to meet you!";
+//         break;
+//       case "VerbalFluencyTask":
+//       case "VerbalFluencyCollab":
+//         const pastWords = player.round.get("words") || [];
+//         const lastWord = player.round.get("lastWord") || "";
+//         userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+//         break;
+//       default:
+//         throw new Error("Unsupported stage for API call");
+//     }
+
+//     const response = await llm.generate(userPrompt);
+//     console.log(`API response received for player ${player.id}, game ${player.currentGame.id}:`, response);
+    
+//     await player.stage.set("apiResponse", response);
+//     console.log(`API response set on stage ${currentStage.get("name")} for player ${player.id}, game ${player.currentGame.id}`);
+
+//   } catch (error) {
+//     console.error(`API call or state update failed for player ${player.id}, game ${player.currentGame.id}`, error);
+//     await player.stage.set("apiError", error.message);
+//   } finally {
+//     await player.set("apiTrigger", false);
+//     console.log(`API trigger reset to false for player ${player.id}, game ${player.currentGame.id}`);
+//   }
+// });
+
+
 Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   console.log(`API trigger changed for player ${player.id} in game ${player.currentGame.id}`);
   const currentStage = player.currentStage;
@@ -301,7 +436,6 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   console.log(`Processing API call for player ${player.id}, game ${player.currentGame.id}`);
 
   try {
-    // const treatment = currentRound.get("treatment");´
     const treatment = player.currentGame.get("treatment");
     if (!treatment) {
       throw new Error("Treatment not found for the current round");
@@ -309,8 +443,9 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
     console.log(`Treatment for current round: ${JSON.stringify(treatment)}`);
     
     const roundName = currentRound.get("name");
-    console.log(`onTrigger called, cueType: ${treatment.cueType}, roundName: ${roundName}`);
-    const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment);
+    const category = player.round.get("category"); // Get the category from the round
+    console.log(`onTrigger called, cueType: ${treatment.cueType}, roundName: ${roundName}, category: ${category}`);
+    const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment, category);
     console.log(`onTrigger - LLM retrieved for player ${player.id}, game ${player.currentGame.id}`);
 
     let userPrompt;

@@ -11,6 +11,7 @@ export function HHInterleaved() {
   const otherPlayer = players.find(p => p.id !== player.id);
   const isPlayerTurn = round.get("currentTurnPlayerId") === player.id;
   const stage = useStage();
+  const category = player.round.get("category");
 
   useEffect(() => {
     const words = round.get("words") || [];
@@ -90,7 +91,7 @@ export function HHInterleaved() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Collaborative Animal Naming</h2>
+      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
       <div className="mt-8 text-4xl font-bold mb-8">
         {lastWord || "No words yet"}
       </div>

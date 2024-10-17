@@ -12,6 +12,7 @@ export function VerbalFluencyCollab() {
   const round = useRound();
   const stage = useStage();
   // player.round.set("roundName", "InterleavedLLM");
+  const category = player.round.get("category");
 
   useEffect(() => {
     player.round.set("roundName", "InterleavedLLM");
@@ -165,7 +166,7 @@ export function VerbalFluencyCollab() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Collaborative Animal Naming</h2>
+      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
       <div className="w-full max-w-md">
         <ul className="mb-4 h-60 overflow-y-auto border border-gray-300 rounded p-2">
           {words.map((word, index) => (
