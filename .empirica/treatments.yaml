@@ -10,6 +10,23 @@ factors:
       - value: divergent
       - value: adjacent
       - value: inferred
+  - desc: the type of task
+    name: taskType
+    values:
+      - value: interleaved
+      - value: selfinitiated
+  - desc: interleaved order (h - human; llm - ai; A - animals; S - supermarket items)
+    name: interOrder
+    values:
+      - value: hA_llmS
+      - value: hS_llmA
+      - value: llmA_hS
+      - value: llmS_hA
+  - desc: selfinitiated order (h1- human main; h2 - human helper; llm - ai; A - animals; S - supermarket items; C - clothing items)
+    name: selfOrder
+    values: #write all possible values
+
+  
 
 treatments:
   - desc: Adjacent LLM cues
@@ -42,4 +59,33 @@ treatments:
       playerCount: 2
       cueType: inferred
     name: inferred_cues_2p
+  - desc: 2 player game with prompt-inferred LLM cues
+    factors:
+      playerCount: 2
+      cueType: inferred
+    name: interleaved_inferred_hA_llmS
+  - desc: interleaved, prompt inferred, 1. human (animals) 2. llm (supermarket)
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: interleaved
+      interOrder: hA_llmS #use this treatment to get interOrder onGame start in callbacks and assign the correct stage to round and category to round.set("category")  ie make some map in callbacks
+    name: interleaved_inferred_hA_llmS
     
+    
+
+    #write all possible treatments
+    #selfinitiated-adjacent: 3! task order * 3! categories = 6 * 6 = 36 
+    #selfinitiated-divergent: 3! task order * 3! categories = 6 * 6 = 36 
+    #selfinitiated-inferred: 3! task order * 3! categories = 6 * 6 = 36 
+    #total self-initiated = 36 + 36 + 36 = 108
+
+    #interleaved-adjacent: 2! task order * 2! categories = 2 * 2 = 4
+    #interleaved-divergent: 2! task order * 2! categories = 2 * 2 = 4
+    #interleaved-inferred: 2! task order * 2! categories = 2 * 2 = 4
+
+
+    #in callbacks, use the treatment name to assign the correct stage to round and category to round.set("category")  ie make some map in callbacks
+    #2p -> same treatment; right now, helper and main are assigned according to whoever signs in first.
+    #in callbacks, make some map that maps the round index to the correct task round + main and helper player IDs for main and helper roles in hh + category + correct cuetypes
+

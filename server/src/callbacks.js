@@ -75,14 +75,15 @@ Empirica.onGameStart(({ game }) => {
   const { playerCount } = treatment;
   console.log("cueType:", cueType);
 
-  
+  //interleaved csv
+
   
   // Interleaved HH round
   if (playerCount > 1) {
     const hhInterleavedRound = game.addRound({
       name: "HHInterleaved",
     });
-    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 30 });
+    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 10 });
     hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
   }
 
@@ -90,7 +91,7 @@ Empirica.onGameStart(({ game }) => {
   const vfcRound = game.addRound({
     name: "VFTCollab",
   });
-  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 30 });
+  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
   vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
 
 
@@ -105,7 +106,7 @@ Empirica.onGameStart(({ game }) => {
   const vftRound = game.addRound({
     name: "VFTask",
   });
-  vftRound.addStage({ name: "VerbalFluencyTask", duration: 30 }); //actual duration 180
+  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
   vftRound.addStage({ name: "VFResult", duration: 300 }); 
 
   
@@ -114,13 +115,13 @@ Empirica.onGameStart(({ game }) => {
     const hhRound = game.addRound({
       name: "HHCollab",
     });
-    hhRound.addStage({ name: "HHCollab", duration: 30 });
+    hhRound.addStage({ name: "HHCollab", duration: 10 });
     hhRound.addStage({ name: "HHCollabResult", duration: 300 });
 
     const hhRoundSwitched = game.addRound({
       name: "HHCollabSwitched",
     });
-    hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 30 });
+    hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 10 });
     hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
   }
 

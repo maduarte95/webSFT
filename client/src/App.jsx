@@ -9,6 +9,7 @@ import { MyConsent } from "./intro-exit/Consent";
 import { PreTask } from "./intro-exit/PreTask";
 import { PostQuestions } from "./intro-exit/PostQuestions";
 import { PostSurvey } from "./intro-exit/PostSurvey";
+import { TypingSpeedTest } from "./intro-exit/TypingSpeedTest";
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -18,7 +19,7 @@ export default function App() {
   const url = `${protocol}//${host}/query`;
 
   function introSteps({ game, player }) {
-    return [MyConsent, PreTask, Introduction,];
+    return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
   }
 
   function exitSteps({ game, player }) {
@@ -35,7 +36,7 @@ export default function App() {
     };
   }
   
-
+  //add redirect to prolific if consent is not given
 
 
   return (
