@@ -5,6 +5,10 @@ import React from "react";
 import { Game } from "./Game";
 import { ExitSurvey } from "./intro-exit/ExitSurvey";
 import { Introduction } from "./intro-exit/Introduction";
+import { MyConsent } from "./intro-exit/Consent";
+import { PreTask } from "./intro-exit/PreTask";
+import { PostQuestions } from "./intro-exit/PostQuestions";
+import { PostSurvey } from "./intro-exit/PostSurvey";
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -14,19 +18,36 @@ export default function App() {
   const url = `${protocol}//${host}/query`;
 
   function introSteps({ game, player }) {
-    return [Introduction];
+    return [MyConsent, PreTask, Introduction,];
   }
 
   function exitSteps({ game, player }) {
-    return [ExitSurvey];
+    return [PostSurvey, PostQuestions, ExitSurvey];
   }
+
+  function consent() {
+    return {
+      component: MyConsent,
+      onConsent: () => {
+        console.log("Consent given");
+        // You can add any other logic here that you want to happen when consent is given
+      }
+    };
+  }
+  
+
+
 
   return (
     <EmpiricaParticipant url={url} ns={playerKey} modeFunc={EmpiricaClassic}>
       <div className="h-screen relative">
         <EmpiricaMenu position="bottom-left" />
         <div className="h-full overflow-auto">
-          <EmpiricaContext introSteps={introSteps} exitSteps={exitSteps}>
+          <EmpiricaContext 
+            consent={consent} 
+            introSteps={introSteps} 
+            exitSteps={exitSteps}
+          >
             <Game />
           </EmpiricaContext>
         </div>
