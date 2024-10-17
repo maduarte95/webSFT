@@ -1,90 +1,625 @@
 factors:
-  - desc: playerCount determines the number of Players are in a Game.
-    name: playerCount
+  - name: playerCount
     values:
-      - value: 1
       - value: 2
-  - desc: Type of LLM cues to receive
-    name: cueType
+  - name: cueType
     values:
-      - value: divergent
       - value: adjacent
+      - value: divergent
       - value: inferred
-  - desc: the type of task
-    name: taskType
+  - name: taskType
     values:
       - value: interleaved
       - value: selfinitiated
-  - desc: interleaved order (h - human; llm - ai; A - animals; S - supermarket items)
-    name: interOrder
+  - name: interOrder
     values:
-      - value: hA_llmS
-      - value: hS_llmA
-      - value: llmA_hS
-      - value: llmS_hA
-  - desc: selfinitiated order (h1- human main; h2 - human helper; llm - ai; A - animals; S - supermarket items; C - clothing items)
-    name: selfOrder
-    values: #write all possible values
-
+      - value: hA_llmC
+      - value: hC_llmA
+      - value: llmA_hC
+      - value: llmC_hA
+  - name: selfOrder
+    values:
+      - value: HH_LLM_HH
+      - value: LLM_HH_HH
+      - value: HH_HH_LLM
+  - name: categoryOrder
+    values:
+      - value: ASC
+      - value: ACS
+      - value: SAC
+      - value: SCA
+      - value: CAS
+      - value: CSA
 
 treatments:
-  - desc: Adjacent LLM cues
-    factors:
-      playerCount: 1
-      cueType: adjacent
-    name: adjacent_cues
-  - desc: Divergent LLM cues
-    factors:
-      playerCount: 1
-      cueType: divergent
-    name: divergent_cues
-  - desc: Prompt-inferred LLM cues
-    factors:
-      playerCount: 1
-      cueType: inferred
-    name: inferred_cues
-  - desc: 2 player game with adjacent LLM cues
+  # Interleaved treatments
+  - desc: "Adjacent cue type, interleaved task type, Order: hA_llmC"
     factors:
       playerCount: 2
       cueType: adjacent
-    name: adjacent_cues_2p
-  - desc: 2 player game with divergent LLM cues
+      taskType: interleaved
+      interOrder: hA_llmC
+    name: interleaved_adjacent_hA_llmC
+
+  - desc: "Adjacent cue type, interleaved task type, Order: hC_llmA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: interleaved
+      interOrder: hC_llmA
+    name: interleaved_adjacent_hC_llmA
+
+  - desc: "Adjacent cue type, interleaved task type, Order: llmA_hC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: interleaved
+      interOrder: llmA_hC
+    name: interleaved_adjacent_llmA_hC
+
+  - desc: "Adjacent cue type, interleaved task type, Order: llmC_hA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: interleaved
+      interOrder: llmC_hA
+    name: interleaved_adjacent_llmC_hA
+
+  - desc: "Divergent cue type, interleaved task type, Order: hA_llmC"
     factors:
       playerCount: 2
       cueType: divergent
-    name: divergent_cues_2p
-  - desc: 2 player game with prompt-inferred LLM cues
+      taskType: interleaved
+      interOrder: hA_llmC
+    name: interleaved_divergent_hA_llmC
+
+  - desc: "Divergent cue type, interleaved task type, Order: hC_llmA"
     factors:
       playerCount: 2
-      cueType: inferred
-    name: inferred_cues_2p
-  - desc: 2 player game with prompt-inferred LLM cues
+      cueType: divergent
+      taskType: interleaved
+      interOrder: hC_llmA
+    name: interleaved_divergent_hC_llmA
+
+  - desc: "Divergent cue type, interleaved task type, Order: llmA_hC"
     factors:
       playerCount: 2
-      cueType: inferred
-    name: interleaved_inferred_hA_llmS
-  - desc: interleaved, prompt inferred, 1. human (animals) 2. llm (supermarket)
+      cueType: divergent
+      taskType: interleaved
+      interOrder: llmA_hC
+    name: interleaved_divergent_llmA_hC
+
+  - desc: "Divergent cue type, interleaved task type, Order: llmC_hA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: interleaved
+      interOrder: llmC_hA
+    name: interleaved_divergent_llmC_hA
+
+  - desc: "Inferred cue type, interleaved task type, Order: hA_llmC"
     factors:
       playerCount: 2
       cueType: inferred
       taskType: interleaved
-      interOrder: hA_llmS #use this treatment to get interOrder onGame start in callbacks and assign the correct stage to round and category to round.set("category")  ie make some map in callbacks
-    name: interleaved_inferred_hA_llmS
-    
-    
+      interOrder: hA_llmC
+    name: interleaved_inferred_hA_llmC
 
-    #write all possible treatments
-    #selfinitiated-adjacent: 3! task order * 3! categories = 6 * 6 = 36 
-    #selfinitiated-divergent: 3! task order * 3! categories = 6 * 6 = 36 
-    #selfinitiated-inferred: 3! task order * 3! categories = 6 * 6 = 36 
-    #total self-initiated = 36 + 36 + 36 = 108
+  - desc: "Inferred cue type, interleaved task type, Order: hC_llmA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: interleaved
+      interOrder: hC_llmA
+    name: interleaved_inferred_hC_llmA
 
-    #interleaved-adjacent: 2! task order * 2! categories = 2 * 2 = 4
-    #interleaved-divergent: 2! task order * 2! categories = 2 * 2 = 4
-    #interleaved-inferred: 2! task order * 2! categories = 2 * 2 = 4
+  - desc: "Inferred cue type, interleaved task type, Order: llmA_hC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: interleaved
+      interOrder: llmA_hC
+    name: interleaved_inferred_llmA_hC
+
+  - desc: "Inferred cue type, interleaved task type, Order: llmC_hA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: interleaved
+      interOrder: llmC_hA
+    name: interleaved_inferred_llmC_hA
+
+  # Self-initiated treatments
+  # Adjacent cue type
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ASC
+    name: selfinitiated_adjacent_HH_LLM_HH_ASC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ACS
+    name: selfinitiated_adjacent_HH_LLM_HH_ACS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SAC
+    name: selfinitiated_adjacent_HH_LLM_HH_SAC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SCA
+    name: selfinitiated_adjacent_HH_LLM_HH_SCA
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CAS
+    name: selfinitiated_adjacent_HH_LLM_HH_CAS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_LLM_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CSA
+    name: selfinitiated_adjacent_HH_LLM_HH_CSA
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ASC
+    name: selfinitiated_adjacent_LLM_HH_HH_ASC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ACS
+    name: selfinitiated_adjacent_LLM_HH_HH_ACS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SAC
+    name: selfinitiated_adjacent_LLM_HH_HH_SAC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SCA
+    name: selfinitiated_adjacent_LLM_HH_HH_SCA
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CAS
+    name: selfinitiated_adjacent_LLM_HH_HH_CAS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: LLM_HH_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CSA
+    name: selfinitiated_adjacent_LLM_HH_HH_CSA
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ASC
+    name: selfinitiated_adjacent_HH_HH_LLM_ASC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ACS
+    name: selfinitiated_adjacent_HH_HH_LLM_ACS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SAC
+    name: selfinitiated_adjacent_HH_HH_LLM_SAC
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SCA
+    name: selfinitiated_adjacent_HH_HH_LLM_SCA
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CAS
+    name: selfinitiated_adjacent_HH_HH_LLM_CAS
+
+  - desc: "Adjacent cue type, self-initiated task type, Order: HH_HH_LLM, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: adjacent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CSA
+    name: selfinitiated_adjacent_HH_HH_LLM_CSA
 
 
-    #in callbacks, use the treatment name to assign the correct stage to round and category to round.set("category")  ie make some map in callbacks
-    #2p -> same treatment; right now, helper and main are assigned according to whoever signs in first.
-    #in callbacks, make some map that maps the round index to the correct task round + main and helper player IDs for main and helper roles in hh + category + correct cuetypes
+  # Divergent cue type
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ASC
+    name: selfinitiated_divergent_HH_LLM_HH_ASC
 
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ACS
+    name: selfinitiated_divergent_HH_LLM_HH_ACS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SAC
+    name: selfinitiated_divergent_HH_LLM_HH_SAC
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SCA
+    name: selfinitiated_divergent_HH_LLM_HH_SCA
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CAS
+    name: selfinitiated_divergent_HH_LLM_HH_CAS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_LLM_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CSA
+    name: selfinitiated_divergent_HH_LLM_HH_CSA
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ASC
+    name: selfinitiated_divergent_LLM_HH_HH_ASC
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ACS
+    name: selfinitiated_divergent_LLM_HH_HH_ACS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SAC
+    name: selfinitiated_divergent_LLM_HH_HH_SAC
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SCA
+    name: selfinitiated_divergent_LLM_HH_HH_SCA
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CAS
+    name: selfinitiated_divergent_LLM_HH_HH_CAS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: LLM_HH_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CSA
+    name: selfinitiated_divergent_LLM_HH_HH_CSA
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ASC
+    name: selfinitiated_divergent_HH_HH_LLM_ASC
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ACS
+    name: selfinitiated_divergent_HH_HH_LLM_ACS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SAC
+    name: selfinitiated_divergent_HH_HH_LLM_SAC
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SCA
+    name: selfinitiated_divergent_HH_HH_LLM_SCA
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CAS
+    name: selfinitiated_divergent_HH_HH_LLM_CAS
+
+  - desc: "Divergent cue type, self-initiated task type, Order: HH_HH_LLM, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: divergent
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CSA
+    name: selfinitiated_divergent_HH_HH_LLM_CSA
+
+  # Inferred cue type
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ASC
+    name: selfinitiated_inferred_HH_LLM_HH_ASC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: ACS
+    name: selfinitiated_inferred_HH_LLM_HH_ACS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SAC
+    name: selfinitiated_inferred_HH_LLM_HH_SAC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: SCA
+    name: selfinitiated_inferred_HH_LLM_HH_SCA
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CAS
+    name: selfinitiated_inferred_HH_LLM_HH_CAS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_LLM_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_LLM_HH
+      categoryOrder: CSA
+    name: selfinitiated_inferred_HH_LLM_HH_CSA
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ASC
+    name: selfinitiated_inferred_LLM_HH_HH_ASC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: ACS
+    name: selfinitiated_inferred_LLM_HH_HH_ACS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SAC
+    name: selfinitiated_inferred_LLM_HH_HH_SAC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: SCA
+    name: selfinitiated_inferred_LLM_HH_HH_SCA
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CAS
+    name: selfinitiated_inferred_LLM_HH_HH_CAS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: LLM_HH_HH, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: LLM_HH_HH
+      categoryOrder: CSA
+    name: selfinitiated_inferred_LLM_HH_HH_CSA
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: ASC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ASC
+    name: selfinitiated_inferred_HH_HH_LLM_ASC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: ACS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: ACS
+    name: selfinitiated_inferred_HH_HH_LLM_ACS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: SAC"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SAC
+    name: selfinitiated_inferred_HH_HH_LLM_SAC
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: SCA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: SCA
+    name: selfinitiated_inferred_HH_HH_LLM_SCA
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: CAS"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CAS
+    name: selfinitiated_inferred_HH_HH_LLM_CAS
+
+  - desc: "Inferred cue type, self-initiated task type, Order: HH_HH_LLM, Category: CSA"
+    factors:
+      playerCount: 2
+      cueType: inferred
+      taskType: selfinitiated
+      selfOrder: HH_HH_LLM
+      categoryOrder: CSA
+    name: selfinitiated_inferred_HH_HH_LLM_CSA
+
+# Total treatments: 66
+# 12 interleaved (3 cue types * 4 task orders)
+# 54 self-initiated (3 cue types * 3 task orders * 6 category orders)

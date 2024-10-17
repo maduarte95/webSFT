@@ -68,94 +68,197 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment) {
   return playerRoundLLMs.get(key);
 }
 
+
+const categoryMap = {
+  A: "animals",
+  S: "supermarket",
+  C: "clothing"
+};
+
+function setupRounds(game, treatment) {
+  const { taskType, cueType, interOrder, selfOrder, categoryOrder } = treatment
+  const players = game.players;
+  
+  if (taskType === 'interleaved') {
+    const [firstTask, secondTask] = interOrder.split('_');
+    
+    const interleavedRound1 = game.addRound({ name: "Interleaved1" });
+    interleavedRound1.addStage({ name: firstTask.startsWith('h') ? "HHInterleaved" : "VerbalFluencyCollab", duration: 180 });
+    interleavedRound1.addStage({ name: firstTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 60 });
+    interleavedRound1.set("category", categoryMap[firstTask.slice(-1)]);
+
+    const interleavedRound2 = game.addRound({ name: "Interleaved2" });
+    interleavedRound2.addStage({ name: secondTask.startsWith('h') ? "HHInterleaved" : "VerbalFluencyCollab", duration: 180 });
+    interleavedRound2.addStage({ name: secondTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 60 });
+    interleavedRound2.set("category", categoryMap[secondTask.slice(-1)]);
+
+  } else if (taskType === 'selfinitiated') {
+    const taskOrder = selfOrder.split('_');
+    const categories = categoryOrder.split('');
+
+    taskOrder.forEach((task, index) => {
+      let roundName, taskStageName, resultStageName;
+      
+      if (task === 'LLM') {
+        roundName = "VerbalFluencyTask";
+        taskStageName = "VerbalFluencyTask";
+        resultStageName = "VFResult";
+      } else {
+        roundName = task === 'HH' ? (index === 0 ? "HHCollab" : "HHCollabSwitched") : task;
+        taskStageName = roundName;
+        resultStageName = "HHCollabResult";
+      }
+
+      const round = game.addRound({ name: roundName });
+      round.addStage({ name: taskStageName, duration: 180 });
+      round.addStage({ name: resultStageName, duration: 60 });
+      round.set("category", categoryMap[categories[index]]);
+
+      console.log(`Round ${roundName} set up with stages: ${taskStageName} and ${resultStageName}`);
+    });
+  }
+
+  game.set("cueType", cueType);
+  game.set("taskType", taskType);
+}
+
+
+// Empirica.onGameStart(({ game }) => {
+//   // console.log(`Game ${game.id} started`);
+//   // const treatment = game.get("treatment");
+//   // const { cueType } = treatment;
+//   // const { playerCount } = treatment;
+//   // console.log("cueType:", cueType);
+
+
+//   const treatment = game.get("treatment");
+//   setupRounds(game, treatment);
+//   console.log(`Game ${game.id} rounds set up for treatment:`, treatment);
+
+//   //interleaved csv
+  
+//   // // Interleaved HH round
+//   // if (playerCount > 1) {
+//   //   const hhInterleavedRound = game.addRound({
+//   //     name: "HHInterleaved",
+//   //   });
+//   //   hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 10 });
+//   //   hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
+//   // }
+
+//   // // Interleaved H-LLM Verbal Fluency round
+//   // const vfcRound = game.addRound({
+//   //   name: "VFTCollab",
+//   // });
+//   // vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
+//   // vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
+
+
+//   // // Human-human rounds if playerCount > 1
+//   // // Initial round for testing API interaction - add typing speed test here
+//   // const initialRound = game.addRound({
+//   //   name: "testRound",
+//   // });
+//   // initialRound.addStage({ name: "LocalAPI", duration: 300 });
+
+//   // // Self-initiated H-LLM Verbal Fluency Task round
+//   // const vftRound = game.addRound({
+//   //   name: "VFTask",
+//   // });
+//   // vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
+//   // vftRound.addStage({ name: "VFResult", duration: 300 }); 
+
+  
+//   // // Self-initiated HH rounds
+//   // if (playerCount > 1) {
+//   //   const hhRound = game.addRound({
+//   //     name: "HHCollab",
+//   //   });
+//   //   hhRound.addStage({ name: "HHCollab", duration: 10 });
+//   //   hhRound.addStage({ name: "HHCollabResult", duration: 300 });
+
+//   //   const hhRoundSwitched = game.addRound({
+//   //     name: "HHCollabSwitched",
+//   //   });
+//   //   hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 10 });
+//   //   hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
+//   // }
+
+
+// });
+
 Empirica.onGameStart(({ game }) => {
-  console.log(`Game ${game.id} started`);
   const treatment = game.get("treatment");
-  const { cueType } = treatment;
-  const { playerCount } = treatment;
-  console.log("cueType:", cueType);
-
-  //interleaved csv
-
-  
-  // Interleaved HH round
-  if (playerCount > 1) {
-    const hhInterleavedRound = game.addRound({
-      name: "HHInterleaved",
-    });
-    hhInterleavedRound.addStage({ name: "HHInterleaved", duration: 10 });
-    hhInterleavedRound.addStage({ name: "HHInterleavedResult", duration: 300 });
-  }
-
-  // Interleaved H-LLM Verbal Fluency round
-  const vfcRound = game.addRound({
-    name: "VFTCollab",
-  });
-  vfcRound.addStage({ name: "VerbalFluencyCollab", duration: 10 });
-  vfcRound.addStage({ name: "VFCollabResult", duration: 300 });
-
-
-  // Human-human rounds if playerCount > 1
-  // Initial round for testing API interaction - add typing speed test here
-  const initialRound = game.addRound({
-    name: "testRound",
-  });
-  initialRound.addStage({ name: "LocalAPI", duration: 300 });
-
-  // Self-initiated H-LLM Verbal Fluency Task round
-  const vftRound = game.addRound({
-    name: "VFTask",
-  });
-  vftRound.addStage({ name: "VerbalFluencyTask", duration: 10 }); //actual duration 180
-  vftRound.addStage({ name: "VFResult", duration: 300 }); 
-
-  
-  // Self-initiated HH rounds
-  if (playerCount > 1) {
-    const hhRound = game.addRound({
-      name: "HHCollab",
-    });
-    hhRound.addStage({ name: "HHCollab", duration: 10 });
-    hhRound.addStage({ name: "HHCollabResult", duration: 300 });
-
-    const hhRoundSwitched = game.addRound({
-      name: "HHCollabSwitched",
-    });
-    hhRoundSwitched.addStage({ name: "HHCollabSwitched", duration: 10 });
-    hhRoundSwitched.addStage({ name: "HHCollabResultSwitched", duration: 300 });
-  }
-
-
+  setupRounds(game, treatment);
+  console.log(`Game ${game.id} rounds set up for treatment:`, treatment);
 });
+
+  // Empirica.onRoundStart(({ round }) => {
+  //   const game = round.currentGame;
+  //   const treatment = game.get("treatment");
+  //   const roundName = round.get("name");
+  //   console.log(`Round ${roundName} started for game ${game.id}. Treatment:`, treatment);
+  
+  //   // round.set("startTime", Date.now());
+    
+  //   game.players.forEach(player => {
+  //     try {
+  //       // Store the treatment and round name for each player
+  //       player.set("currentTreatment", treatment);
+  //       player.round.set("roundName", roundName);
+  //       player.set("currentRoundName", roundName);
+  //       console.log(`Treatment and round name stored for player ${player.id}, round ${roundName}, game ${game.id}`);
+  //     } catch (error) {
+  //       console.error(`onRoundStart Error storing treatment and round name for player ${player.id}, round ${roundName}, game ${game.id}:`, error);
+  //     }
+  //   });
+    
+  //   if (round.get("name") === "HHInterleaved") {
+  //     const players = round.currentGame.players;
+  //     // Randomly choose the first player
+  //     const firstPlayerId = players[Math.floor(Math.random() * players.length)].id;
+  //     round.set("currentTurnPlayerId", firstPlayerId);
+  //     round.set("words", []);
+  //     round.set("score", 0);
+  //   }
+  // });
 
   Empirica.onRoundStart(({ round }) => {
     const game = round.currentGame;
-    const treatment = game.get("treatment");
-    const roundName = round.get("name");
-    console.log(`Round ${roundName} started for game ${game.id}. Treatment:`, treatment);
+    const players = game.players;
   
-    // round.set("startTime", Date.now());
+    console.log(`Round ${round.index} started for game ${game.id}`);
+  
+    // Set round-specific data
+    // round.set("startTime", new Date().getTime());
     
-    game.players.forEach(player => {
-      try {
-        // Store the treatment and round name for each player
-        player.set("currentTreatment", treatment);
-        player.round.set("roundName", roundName);
-        player.set("currentRoundName", roundName);
-        console.log(`Treatment and round name stored for player ${player.id}, round ${roundName}, game ${game.id}`);
-      } catch (error) {
-        console.error(`onRoundStart Error storing treatment and round name for player ${player.id}, round ${roundName}, game ${game.id}:`, error);
+    players.forEach(player => {
+      const category = round.get("category");
+      const cueType = game.get("cueType");
+      const taskType = game.get("taskType");
+  
+      player.round.set("category", category);
+      player.round.set("cueType", cueType);
+      player.round.set("taskType", taskType);
+  
+      // For Human-Human collaboration rounds
+      if (round.get("name").includes("HHCollab")) {
+        const isFirstHHRound = round.get("name") === "HHCollab";
+        player.round.set("role", isFirstHHRound ? 
+          (player.index === 0 ? "main" : "helper") : 
+          (player.index === 0 ? "helper" : "main"));
       }
+  
+      console.log(`Round data set for player ${player.id} in round ${round.index}`);
     });
-    
+  
+    // Additional setup for specific round types
     if (round.get("name") === "HHInterleaved") {
-      const players = round.currentGame.players;
-      // Randomly choose the first player
       const firstPlayerId = players[Math.floor(Math.random() * players.length)].id;
       round.set("currentTurnPlayerId", firstPlayerId);
-      round.set("words", []);
-      round.set("score", 0);
     }
+  
+    console.log(`Round ${round.index} fully set up for game ${game.id}`);
   });
 
 
