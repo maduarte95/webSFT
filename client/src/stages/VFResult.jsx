@@ -36,7 +36,7 @@ export function VFResult() {
           )}
         </div>
         <div className="w-1/2 p-4">
-          <h2 className="text-3xl font-bold mb-4">AI Hints</h2>
+          <h2 className="text-3xl font-bold mb-4">Your partner's words</h2>
           {aiWords.length > 0 ? (
             <ul className="list-disc list-inside">
               {aiWords.map((word, index) => (

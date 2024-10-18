@@ -10,6 +10,9 @@ import { PreTask } from "./intro-exit/PreTask";
 import { PostQuestions } from "./intro-exit/PostQuestions";
 import { PostSurvey } from "./intro-exit/PostSurvey";
 import { TypingSpeedTest } from "./intro-exit/TypingSpeedTest";
+import { IntroductionInterleaved } from "./intro-exit/IntroductionInterleaved";
+import { IntroductionSelfinitiated } from "./intro-exit/IntroductionSelfinitiated";
+
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -22,6 +25,14 @@ export default function App() {
     // return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
     return [Introduction];
   }
+
+  // function introSteps({ game, player }) {
+  //   const taskType = game.treatment.taskType;
+  //   return [
+  //     taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
+  //   ];
+  // }
+
 
   function exitSteps({ game, player }) {
     return [PostSurvey, PostQuestions, ExitSurvey];

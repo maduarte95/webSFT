@@ -32,7 +32,7 @@ export function VFCollabResult() {
           </ul>
         </div>
         <div className="w-1/2 p-4">
-          <h2 className="text-3xl font-bold mb-4">AI Words</h2>
+          <h2 className="text-3xl font-bold mb-4">Partner's Words</h2>
           <ul className="list-disc list-inside">
             {aiWords.map((word, index) => (
               <li key={index} className="text-xl">{word.text}</li>

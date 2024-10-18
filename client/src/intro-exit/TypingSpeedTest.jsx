@@ -58,6 +58,7 @@ export function TypingSpeedTest({ next }) {
 
     player.set("typingSpeedWPM", wpm);
     player.set("typingSpeedCPM", cpm);
+    player.set("typingSpeedTime", timeInSeconds);
   };
 
   const handleContinue = () => {
@@ -71,11 +72,93 @@ export function TypingSpeedTest({ next }) {
     }
   };
 
+  // return (
+  //   <div className="flex flex-col items-center justify-center h-full">
+  //     <h2 className="text-3xl font-bold mb-8">Typing Speed Test</h2>
+  //     <p className="mb-4 text-xl">{SAMPLE_TEXT}</p>
+  //     <p className="mb-4">Time left: {timeLeft} seconds</p>
+  //     <textarea
+  //       value={inputText}
+  //       onChange={handleInputChange}
+  //       className="w-full max-w-lg p-2 border border-gray-300 rounded mb-4"
+  //       rows={3}
+  //       disabled={isFinished}
+  //       placeholder="Start typing here..."
+  //     />
+  //     {isFinished && (
+  //       <div className="mb-4">
+  //         <p>Your typing speed:</p>
+  //         <p>{player.get("typingSpeedWPM")} WPM</p>
+  //         <p>{player.get("typingSpeedCPM")} CPM</p>
+  //       </div>
+  //     )}
+  //     {isFinished && (
+  //       <Button handleClick={handleContinue}>Continue</Button>
+  //     )}
+  //   </div>
+  // );
+
+  // return (
+  //   <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto px-4">
+  //     <h2 className="text-3xl font-bold mb-6">Typing Speed Test</h2>
+      
+  //     <div className="bg-gray-100 p-4 rounded-lg mb-6 text-left">
+  //       <h3 className="text-xl font-semibold mb-2">Instructions:</h3>
+  //       <ul className="list-disc list-inside space-y-2">
+  //         <li>Type the following sentence as quickly and accurately as you can:</li>
+  //         <li className="font-bold">{SAMPLE_TEXT}</li>
+  //         <li>You have {TIME_LIMIT} seconds to complete the test.</li>
+  //         <li>The timer will start when you begin typing.</li>
+  //         <li>Press Enter or click "Continue" when you're done.</li>
+  //       </ul>
+  //     </div>
+
+  //     <p className="mb-4 text-lg">Time left: {timeLeft} seconds</p>
+      
+  //     <textarea
+  //       value={inputText}
+  //       onChange={handleInputChange}
+  //       className="w-full max-w-lg p-2 border border-gray-300 rounded mb-4"
+  //       rows={3}
+  //       disabled={isFinished}
+  //       placeholder="Start typing here..."
+  //     />
+      
+  //     {isFinished && (
+  //       <div className="mb-4">
+  //         <p>Your typing speed:</p>
+  //         <p>{player.get("typingSpeedWPM")} WPM</p>
+  //         <p>{player.get("typingSpeedCPM")} CPM</p>
+  //       </div>
+  //     )}
+      
+  //     {isFinished && (
+  //       <Button handleClick={handleContinue}>Continue</Button>
+  //     )}
+  //   </div>
+  // );
+
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Typing Speed Test</h2>
-      <p className="mb-4 text-xl">{SAMPLE_TEXT}</p>
-      <p className="mb-4">Time left: {timeLeft} seconds</p>
+    <div className="flex flex-col items-center justify-center h-full max-w-3xl mx-auto px-4">
+      <h2 className="text-3xl font-bold mb-6">Typing Speed Test</h2>
+      
+      <div className="bg-gray-100 p-4 rounded-lg mb-6 text-left w-full">
+        <h3 className="text-xl font-semibold mb-2">Instructions:</h3>
+        <ul className="list-disc list-inside space-y-2">
+          <li>Type the text displayed below as quickly and accurately as you can (case sensitive).</li>
+          <li>You have {TIME_LIMIT} seconds to complete the test.</li>
+          <li>The timer will start when you begin typing.</li>
+          <li>Click "Continue" when you're done.</li>
+        </ul>
+      </div>
+
+      <div className="bg-blue-100 p-4 rounded-lg mb-6 w-full">
+        <h3 className="text-xl font-semibold mb-2">Text:</h3>
+        <p className="text-lg font-bold">{SAMPLE_TEXT}</p>
+      </div>
+
+      <p className="mb-4 text-lg">Time left: {timeLeft} seconds</p>
+      
       <textarea
         value={inputText}
         onChange={handleInputChange}
@@ -84,6 +167,7 @@ export function TypingSpeedTest({ next }) {
         disabled={isFinished}
         placeholder="Start typing here..."
       />
+      
       {isFinished && (
         <div className="mb-4">
           <p>Your typing speed:</p>
@@ -91,6 +175,7 @@ export function TypingSpeedTest({ next }) {
           <p>{player.get("typingSpeedCPM")} CPM</p>
         </div>
       )}
+      
       {isFinished && (
         <Button handleClick={handleContinue}>Continue</Button>
       )}

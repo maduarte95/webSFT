@@ -7,6 +7,7 @@ let lastHintRequestTime = 0;
 
 export function VerbalFluencyCollab() {
   const [currentWord, setCurrentWord] = useState("");
+  const [lastWord, setLastWord] = useState("");
   const [isWaitingForAI, setIsWaitingForAI] = useState(false);
   const player = usePlayer();
   const round = useRound();
@@ -23,6 +24,13 @@ export function VerbalFluencyCollab() {
     const words = player.round.get("words") || [];
     const totalWordCount = words.length;
     player.round.set("score", totalWordCount);
+
+    //new
+    const lastSavedWord = words[words.length - 1];
+    if (lastSavedWord) {
+      setLastWord(`${lastSavedWord.source === 'user' ? 'You' : 'Partner'}: ${lastSavedWord.text}`);
+    }
+
   }, [player.round.get("words")]);
 
   useEffect(() => {
@@ -81,7 +89,10 @@ export function VerbalFluencyCollab() {
       }];
       player.round.set("words", updatedWords);
       player.round.set("lastWord", currentWord.trim());
+      // setCurrentWord("");
+      setLastWord(`You: ${currentWord.trim()}`);
       setCurrentWord("");
+  
   
       console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
       triggerAIResponse();
@@ -147,6 +158,7 @@ export function VerbalFluencyCollab() {
         apiLatency: apiLatency
       }];
       player.round.set("words", updatedWords);
+      setLastWord(`Partner: ${response}`);
       setIsWaitingForAI(false);
       player.stage.set("apiResponse", null);
 
@@ -164,23 +176,48 @@ export function VerbalFluencyCollab() {
 
   const words = player.round.get("words") || [];
 
+  // return (
+  //   <div className="flex flex-col items-center justify-center h-full">
+  //     <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+  //     <div className="w-full max-w-md">
+  //       <ul className="mb-4 h-60 overflow-y-auto border border-gray-300 rounded p-2">
+  //         {words.map((word, index) => (
+  //           <li key={index} className={`text-xl ${word.source === 'user' ? 'text-blue-600' : 'text-green-600'}`}>
+  //             {word.source === 'user' ? 'You: ' : 'AI: '}{word.text}
+  //           </li>
+  //         ))}
+  //       </ul>
+  //       <div className="flex items-center">
+  //         <input
+  //           value={currentWord}
+  //           onChange={(e) => setCurrentWord(e.target.value)}
+  //           onKeyDown={handleKeyDown}
+  //           placeholder="Enter an animal name..."
+  //           className="flex-grow p-2 border border-gray-300 rounded mr-2"
+  //           disabled={isWaitingForAI}
+  //         />
+  //         <Button handleClick={handleSendWord} disabled={isWaitingForAI || currentWord.trim() === ""}>
+  //           Send
+  //         </Button>
+  //       </div>
+  //       {isWaitingForAI && <p className="mt-2 text-gray-600">Waiting for AI response...</p>}
+  //     </div>
+  //   </div>
+  // );
+
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+      <div className="mt-8 text-4xl font-bold mb-8">
+        {lastWord || "No words yet"}
+      </div>
       <div className="w-full max-w-md">
-        <ul className="mb-4 h-60 overflow-y-auto border border-gray-300 rounded p-2">
-          {words.map((word, index) => (
-            <li key={index} className={`text-xl ${word.source === 'user' ? 'text-blue-600' : 'text-green-600'}`}>
-              {word.source === 'user' ? 'You: ' : 'AI: '}{word.text}
-            </li>
-          ))}
-        </ul>
-        <div className="flex items-center">
+        <div className="flex items-center mb-4">
           <input
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter an animal name..."
+            placeholder="Enter an item..."
             className="flex-grow p-2 border border-gray-300 rounded mr-2"
             disabled={isWaitingForAI}
           />
@@ -188,7 +225,7 @@ export function VerbalFluencyCollab() {
             Send
           </Button>
         </div>
-        {isWaitingForAI && <p className="mt-2 text-gray-600">Waiting for AI response...</p>}
+        {isWaitingForAI && <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>}
       </div>
     </div>
   );

@@ -25,7 +25,8 @@ export function VerbalFluencyTask() {
     setWords(savedWords);
     const lastSavedWord = savedWords[savedWords.length - 1];
     if (lastSavedWord) {
-      setLastWord(lastSavedWord.source === 'ai' ? `AI Hint: ${lastSavedWord.text}` : lastSavedWord.text);
+      // setLastWord(lastSavedWord.source === 'ai' ? `AI Hint: ${lastSavedWord.text}` : lastSavedWord.text);
+      setLastWord(lastSavedWord.source === 'ai' ? `Partner: ${lastSavedWord.text}` : `You: ${lastSavedWord.text}`);
     }
   }, [player.round.get("words")]);
 
@@ -154,7 +155,7 @@ export function VerbalFluencyTask() {
       }];
       setWords(updatedWords);
       player.round.set("words", updatedWords);
-      setLastWord(`AI Hint: ${response}`);
+      // setLastWord(`AI Hint: ${response}`);
       setIsLoading(false);
       player.stage.set("apiResponse", null);
 
@@ -176,7 +177,7 @@ export function VerbalFluencyTask() {
     <div className="flex flex-col items-center justify-center h-full">
       <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
       <div className="mt-8 text-4xl font-bold">
-        {lastWord}
+        {lastWord || "No words yet"}
       </div>
       <div className="flex flex-col items-center mt-8">
         <input

@@ -21,7 +21,10 @@ export function HHCollab() {
     const words = round.get("words") || [];
     const lastSavedWord = words[words.length - 1];
     if (lastSavedWord) {
-      setLastWord(lastSavedWord.source === 'helper' ? `Assistant: ${lastSavedWord.text}` : lastSavedWord.text);
+      // setLastWord(lastSavedWord.source === 'helper' ? `Assistant: ${lastSavedWord.text}` : lastSavedWord.text); 
+      // setLastWord(lastSavedWord.source === 'helper' ? `Partner: ${lastSavedWord.text}` : `You: ${lastSavedWord.text}`);
+      const isOwnWord = (isMain && lastSavedWord.source === 'main') || (!isMain && lastSavedWord.source === 'helper');
+      setLastWord(isOwnWord ? `You: ${lastSavedWord.text}` : `Partner: ${lastSavedWord.text}`);
     }
     player.round.set("score", words.filter(word => word.source === 'main').length); //set both players' score to main player's word count   
   }, [round.get("words")]); //updates when words change
@@ -155,8 +158,8 @@ async function handleSendWord() {
             Request Hint
           </Button>
         )}
-        {round.get("waitingForAssistant") && isMain && <p className="mt-2 text-gray-600">Waiting for assistant's hint...</p>}
-        {!isMain && round.get("waitingForAssistant") && <p className="mt-2 text-gray-600">The main player needs your help! Please provide a hint.</p>}
+        {round.get("waitingForAssistant") && isMain && <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>}
+        {!isMain && round.get("waitingForAssistant") && <p className="mt-2 text-gray-600">The main player needs your help! Please provide a word.</p>}
         {!isMain && !round.get("waitingForAssistant") && <p className="mt-2 text-gray-600">Waiting for the main player to request assistance...</p>}
       </div>
     </div>
