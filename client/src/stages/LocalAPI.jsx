@@ -9,6 +9,7 @@ export function LocalAPI() {
   const player = usePlayer();
   const stage = player.stage;
   const renderCount = useRef(0);
+  game = useGame();
 
   console.log(`LocalAPI component rendered. Render count: ${++renderCount.current}`);
 

@@ -356,23 +356,21 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
 Empirica.onGameEnded(({ game }) => {
   console.log(`Game ${game.id} ended`);
+  const taskType = game.get("taskType");
+  const taskIndices = game.get("taskIndex");
+  const taskCategories = game.get("taskCategory");
+  console.log(`Task type: ${taskType}, taskIndices: ${taskIndices}, taskCategories: ${taskCategories}`);
   game.players.forEach(player => {
+    player.set("taskType", taskType);
+    player.set("taskIndices", taskIndices);
+    player.set("taskCategories", taskCategories);
     if (playerRoundLLMs.has(player.id)) {
       playerRoundLLMs.delete(player.id);
       console.log(`Cleaned up LLMs for player ${player.id} in game ${game.id}`);
     }
+
+
   });
-
-  //save everything to player 
-  const taskType = game.get("taskType");
-  const taskIndices = game.get("taskIndices") || [];
-  const taskCategories = game.get("taskCategories") || [];
-  console.log("Got from game", { taskType, taskIndices, taskCategories });
-
-  player.set("taskType", taskType);
-  player.set("taskIndices", taskIndices);
-  player.set("taskCategories", taskCategories);
-
 });
 
 

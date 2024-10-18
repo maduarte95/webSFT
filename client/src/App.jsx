@@ -13,7 +13,6 @@ import { TypingSpeedTest } from "./intro-exit/TypingSpeedTest";
 import { IntroductionInterleaved } from "./intro-exit/IntroductionInterleaved";
 import { IntroductionSelfinitiated } from "./intro-exit/IntroductionSelfinitiated";
 
-
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
   const playerKey = urlParams.get("participantKey") || "";
@@ -21,17 +20,18 @@ export default function App() {
   const { protocol, host } = window.location;
   const url = `${protocol}//${host}/query`;
 
-  function introSteps({ game, player }) {
-    // return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
-    return [Introduction];
-  }
-
   // function introSteps({ game, player }) {
-  //   const taskType = game.treatment.taskType;
-  //   return [
-  //     taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
-  //   ];
+  //   // return [MyConsent, TypingSpeedTest, PreTask, Introduction,];
+  //   return [Introduction];
   // }
+
+  function introSteps({ game, player }) {
+    const treatment = game.get("treatment");
+    const taskType = treatment.taskType;
+    return [MyConsent, PreTask, TypingSpeedTest,
+      taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
+    ];
+  }
 
 
   function exitSteps({ game, player }) {

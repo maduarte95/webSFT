@@ -24,7 +24,7 @@ export function VFResult() {
       <h1 className="text-5xl font-bold mb-8">Summary</h1>
       <div className="flex w-full justify-center">
         <div className="w-1/2 p-4">
-          <h2 className="text-3xl font-bold mb-4">Your Words</h2>
+          <h2 className="text-3xl font-bold mb-4">Main Player's Words</h2>
           {userWords.length > 0 ? (
             <ul className="list-disc list-inside">
               {userWords.map((word, index) => (
@@ -36,7 +36,7 @@ export function VFResult() {
           )}
         </div>
         <div className="w-1/2 p-4">
-          <h2 className="text-3xl font-bold mb-4">Your partner's words</h2>
+          <h2 className="text-3xl font-bold mb-4">Helper's words</h2>
           {aiWords.length > 0 ? (
             <ul className="list-disc list-inside">
               {aiWords.map((word, index) => (
@@ -52,7 +52,7 @@ export function VFResult() {
         <h2 className="text-3xl font-bold mb-4">Statistics</h2>
         <p className="text-xl">Total Words: {totalWordCount}</p>
         <p className="text-xl">Your Words: {userWordCount}</p>
-        <p className="text-xl">AI Hints: {aiWordCount}</p>
+        <p className="text-xl">Partner's words: {aiWordCount}</p>
         <p className="text-xl">Your Score: {score}</p>
       </div>
       <Button handleClick={handleContinue} className="mt-8">Continue</Button>
