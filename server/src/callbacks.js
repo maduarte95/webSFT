@@ -94,12 +94,14 @@ function setupRounds(game, treatment) {
     
     const interleavedRound1 = game.addRound({ name: "Interleaved1" });
     interleavedRound1.addStage({ name: firstTask.startsWith('h') ? "HHInterleaved" : "VerbalFluencyCollab", duration: 30 });
+    interleavedRound1.addStage({ name: "SwitchesId", duration: 300 });
     interleavedRound1.addStage({ name: firstTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 300 });
     interleavedRound1.set("category", categoryMap[firstTask.slice(-1)]);
     interleavedRound1.set("treatment", treatment);  // Set treatment for the round
 
     const interleavedRound2 = game.addRound({ name: "Interleaved2" });
     interleavedRound2.addStage({ name: secondTask.startsWith('h') ? "HHInterleaved" : "VerbalFluencyCollab", duration: 30 });
+    interleavedRound2.addStage({ name: "SwitchesId", duration: 300 });
     interleavedRound2.addStage({ name: secondTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 300 });
     interleavedRound2.set("category", categoryMap[secondTask.slice(-1)]);
     interleavedRound2.set("treatment", treatment);  // Set treatment for the round
@@ -123,6 +125,7 @@ function setupRounds(game, treatment) {
 
       const round = game.addRound({ name: roundName });
       round.addStage({ name: taskStageName, duration: 30 });
+      round.addStage({ name: "SwitchesId", duration: 300 });
       round.addStage({ name: resultStageName, duration: 300 });
       round.set("category", categoryMap[categories[index]]);
       console.log("category set to", categoryMap[categories[index]]); //this is being defined, it is correct

@@ -116,6 +116,7 @@ import { HHCollab } from "./stages/HHCollab";
 import { HHCollabResult } from "./stages/HHCollabResult";
 import { HHInterleaved } from "./stages/HHInterleaved";
 import { HHInterleavedResult } from "./stages/HHInterleavedResult";
+import { SwitchesId } from "./stages/SwitchesId";
 
 export function Stage() {
   const player = usePlayer();
@@ -146,6 +147,8 @@ export function Stage() {
       switch (stage.get("name")) {
         case "HHCollab":
           return <HHCollab />;
+        case "SwitchesId":
+          return <SwitchesId />;
         case "HHCollabResult":
           return <HHCollabResult />;
         default:
@@ -155,6 +158,8 @@ export function Stage() {
       switch (stage.get("name")) {
         case "HHCollabSwitched":
           return <HHCollab />;
+        case "SwitchesId":
+          return <SwitchesId />;
         case "HHCollabResult":
           return <HHCollabResult />;
         default:
@@ -171,6 +176,8 @@ export function Stage() {
           return <VerbalFluencyCollab />;
         case "VFCollabResult":
           return <VFCollabResult />;
+        case "SwitchesId":
+          return <SwitchesId />;
         default:
           return <Loading />;
       }
@@ -180,6 +187,8 @@ export function Stage() {
           return <VerbalFluencyTask />;
         case "VFResult":
           return <VFResult />;
+        case "SwitchesId":
+          return <SwitchesId />;
         default:
           return <Loading />;
       }
