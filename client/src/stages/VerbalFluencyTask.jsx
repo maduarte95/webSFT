@@ -14,6 +14,12 @@ export function VerbalFluencyTask() {
   const round = useRound();
   const stage = useStage();
   const category = player.round.get("category");
+
+  const canRequestHint = () => {
+    if (words.length === 0) return true;
+    const lastWord = words[words.length - 1];
+    return lastWord.source === 'user'; // Similar to HHCollab's 'main'
+  };
   
   useEffect(() => {
     player.round.set("roundName", "SelfInitiatedLLM");
@@ -99,6 +105,11 @@ export function VerbalFluencyTask() {
   }
 
   async function getHint() {
+
+    if (!canRequestHint()) {
+      return;
+    }
+    
     hintRequestCount++;
     const clientStartTime = Date.now();
     console.log(`Hint request #${hintRequestCount} initiated at client time: ${clientStartTime}`);
@@ -175,25 +186,36 @@ export function VerbalFluencyTask() {
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
-      <div className="mt-8 text-4xl font-bold">
-        {lastWord || "No words yet"}
-      </div>
-      <div className="flex flex-col items-center mt-8">
-        <input
-          value={currentWord}
-          onChange={(e) => setCurrentWord(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter an animal name..."
-          className="mb-4 p-2 border border-gray-300 rounded"
-        />
-        <div className="flex space-x-4">
-          <Button handleClick={handleSendWord}>Send</Button>
-          <Button handleClick={getHint} disabled={isLoading}>
-            {isLoading ? "Loading..." : "Hint"}
-          </Button>
-        </div>
-      </div>
+    <div className="text-2xl font-bold mb-4">
+      Your Role: Main Player
     </div>
+    
+    <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+    <div className="mt-8 text-4xl font-bold">
+      {lastWord || "No words yet"}
+    </div>
+    <div className="flex flex-col items-center mt-8">
+      <input
+        value={currentWord}
+        onChange={(e) => setCurrentWord(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder="Enter an item..."
+        className="mb-4 p-2 border border-gray-300 rounded"
+      />
+      <div className="flex space-x-4">
+        <Button handleClick={handleSendWord}>Send</Button>
+        <Button 
+          handleClick={getHint} 
+          disabled={isLoading || !canRequestHint()}
+        >
+          {isLoading ? "Loading..." : "Hint"}
+        </Button>
+      </div>
+      {/* Add status message */}
+      {!canRequestHint() && !isLoading && (
+        <p className="mt-2 text-gray-600">Please enter a word before requesting another hint.</p>
+      )}
+    </div>
+  </div>
   );
 }
