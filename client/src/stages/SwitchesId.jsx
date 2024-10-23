@@ -9,16 +9,23 @@ export function SwitchesId() {
   const [switchMarks, setSwitchMarks] = useState({});
 
   useEffect(() => {
-    const words = round.get("words") || [];
+    const words = player.round.get("words") || [];
     const simplifiedWords = words.map((word, index) => ({
       id: index,
       text: word.text,
       isSwitch: false
     }));
     setWordList(simplifiedWords);
-  }, []);
+    
+    // Initialize switchMarks with first word always marked
+    setSwitchMarks({ 0: true });
+ }, []);
 
   const toggleSwitch = (id) => {
+    
+    // Don't allow toggling the first word
+    if (id === 0) return;
+
     setSwitchMarks(prev => {
       const newMarks = { ...prev };
       newMarks[id] = !newMarks[id];
@@ -31,10 +38,10 @@ export function SwitchesId() {
     const markedWords = wordList.map((word) => ({
       index: word.id,
       word: word.text,
-      switch: switchMarks[word.id] ? 1 : 0
+      switch: word.id === 0 ? 1 : (switchMarks[word.id] ? 1 : 0)
     }));
     
-    player.set("switches", markedWords);
+    player.round.set("switches", markedWords);
     player.stage.set("submit", true);
   };
 
@@ -62,13 +69,16 @@ export function SwitchesId() {
               <span className="text-lg mr-4">{word.text}</span>
               <button
                 onClick={() => toggleSwitch(word.id)}
+                disabled={word.id === 0}
                 className={`w-8 h-8 flex items-center justify-center rounded border ${
-                  switchMarks[word.id]
+                  word.id === 0 
+                    ? 'border-blue-500 bg-blue-50 text-blue-500 cursor-not-allowed opacity-75'
+                    : switchMarks[word.id]
                     ? 'border-blue-500 bg-blue-50 text-blue-500'
                     : 'border-gray-300 hover:border-gray-400'
                 }`}
               >
-                {switchMarks[word.id] ? 'X' : ''}
+                {word.id === 0 || switchMarks[word.id] ? 'X' : ''}
               </button>
             </div>
           ))}

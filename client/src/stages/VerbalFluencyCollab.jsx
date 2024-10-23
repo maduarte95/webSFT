@@ -206,28 +206,58 @@ export function VerbalFluencyCollab() {
   // );
 
   return (
+    // <div className="flex flex-col items-center justify-center h-full">
+    //   <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+    //   <div className="mt-8 text-4xl font-bold mb-8">
+    //     {lastWord || "No words yet"}
+    //   </div>
+    //   <div className="w-full max-w-md">
+    //     <div className="flex items-center mb-4">
+    //       <input
+    //         value={currentWord}
+    //         onChange={(e) => setCurrentWord(e.target.value)}
+    //         onKeyDown={handleKeyDown}
+    //         placeholder="Enter an item..."
+    //         className="flex-grow p-2 border border-gray-300 rounded mr-2"
+    //         disabled={isWaitingForAI}
+    //       />
+    //       <Button handleClick={handleSendWord} disabled={isWaitingForAI || currentWord.trim() === ""}>
+    //         Send
+    //       </Button>
+    //     </div>
+    //     {isWaitingForAI && <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>}
+    //   </div>
+    // </div>
+
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
-      <div className="mt-8 text-4xl font-bold mb-8">
-        {lastWord || "No words yet"}
-      </div>
-      <div className="w-full max-w-md">
-        <div className="flex items-center mb-4">
-          <input
-            value={currentWord}
-            onChange={(e) => setCurrentWord(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Enter an item..."
-            className="flex-grow p-2 border border-gray-300 rounded mr-2"
-            disabled={isWaitingForAI}
-          />
-          <Button handleClick={handleSendWord} disabled={isWaitingForAI || currentWord.trim() === ""}>
-            Send
-          </Button>
-        </div>
-        {isWaitingForAI && <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>}
-      </div>
+    <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+    <div className="mt-8 text-4xl font-bold mb-8">
+      {lastWord || "No words yet"}
     </div>
+    <div className="w-full max-w-md">
+      <div className="flex items-center mb-4">
+        <input
+          value={currentWord}
+          onChange={(e) => setCurrentWord(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Enter an item..."
+          className="flex-grow p-2 border border-gray-300 rounded mr-2"
+          disabled={isWaitingForAI}
+        />
+        <Button 
+          handleClick={handleSendWord} 
+          disabled={isWaitingForAI || currentWord.trim() === ""}
+        >
+          Send
+        </Button>
+      </div>
+      {!isWaitingForAI ? (
+        <p className="mt-2 text-green-600">It's your turn!</p>
+      ) : (
+        <p className="mt-2 text-gray-600">Waiting for your partner...</p>
+      )}
+    </div>
+  </div>
   );
 }
 

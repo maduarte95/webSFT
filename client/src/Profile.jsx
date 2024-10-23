@@ -2,6 +2,7 @@ import {
   usePlayer,
   useRound,
   useStage,
+  useGame
 } from "@empirica/core/player/classic/react";
 import React from "react";
 import { Avatar } from "./components/Avatar";
@@ -11,18 +12,29 @@ export function Profile() {
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
-
-  // const score = player.get("score") || 0; // Old score for the player
+  const game = useGame();
+  
+  const taskIndices = game.get("taskIndex") || [];
+  const roundName = round?.get("name");
+  const currentIndex = taskIndices.findIndex(task => {
+    if (roundName?.includes("Interleaved")) {
+      return task === stage?.get("name");
+    }
+    return task === roundName;
+  });
+  
+  const displayRoundNumber = currentIndex !== -1 ? currentIndex + 1 : "";
+  const maxRounds = taskIndices.length;
   const score = player.round.get("score") || 0;
 
   return (
     <div className="min-w-lg md:min-w-2xl mt-2 m-x-auto px-3 py-2 text-gray-500 rounded-md grid grid-cols-3 items-center border-.5">
       <div className="leading-tight ml-1">
         <div className="text-gray-600 font-semibold">
-          {round ? round.get("name") : ""}
+          {round ? `Round ${displayRoundNumber} of ${maxRounds}` : ""}
         </div>
         <div className="text-empirica-500 font-medium">
-          {stage ? stage.get("name") : ""}
+          {stage ? (stage.get("name").includes("Result") ? "Results" : "Task") : ""}
         </div>
       </div>
 

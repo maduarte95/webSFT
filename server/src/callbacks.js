@@ -209,9 +209,7 @@ Empirica.onRoundStart(({ round }) => {
   }
 
   const category = taskCategory[taskIndexPosition];
-
   console.log(`Category for round ${round.get("name")}: ${category}`);
-
   round.set("category", category);
 
   players.forEach(player => {
@@ -225,6 +223,17 @@ Empirica.onRoundStart(({ round }) => {
       player.round.set("role", isFirstHHRound ? 
         (player.index === 0 ? "main" : "helper") : 
         (player.index === 0 ? "helper" : "main"));
+      player.round.set("partner", "human");
+    }
+
+    // For AI-partnered rounds
+    else if (round.get("name") === "VerbalFluencyTask" || round.get("name").includes("VerbalFluencyCollab")) {
+      player.round.set("role", "main");
+      player.round.set("partner", "ai");
+    }
+    // For Interleaved rounds
+    else if (round.get("name").includes("Interleaved")) {
+      player.round.set("partner", "human");
     }
 
     console.log(`Round data set for player ${player.id} in round ${round.get("name")} for game ${game.id}`);
@@ -296,7 +305,41 @@ Empirica.onStageEnded(({ stage }) => {
     console.error("Stage is undefined in onStageEnded");
     return;
   }
-  console.log(`${stage.get("name")} stage ended for game ${stage.currentGame.id}`);
+  const stageName = stage.get("name");
+  console.log(`${stageName} stage ended for game ${stage.currentGame.id}`);
+
+  // For stages that generate words
+  wordStages = ["HHInterleaved", "VerbalFluencyCollab", "HHCollab", "HHCollabSwitched"];
+
+  if (wordStages.includes(stageName)) {
+    const round = stage.round;
+    const players = stage.currentGame.players;
+    
+    players.forEach(player => {
+      // If the words are in round, copy them to player.round
+      if (round.get("words")) {
+        player.round.set("words", round.get("words"));
+      }
+      // If they're already in player.round (AI case), they're already saved correctly
+    });
+  }
+});
+
+Empirica.onRoundEnded(({ round }) => {
+  const game = round.currentGame;
+  game.players.forEach((player) => {
+    // Get current cumulative score
+    const currentScore = player.get("score") || 0;
+    // Get the round score
+    const roundScore = player.round.get("score") || 0;
+    // Update cumulative score
+    player.set("score", currentScore + roundScore);
+    
+    console.log(`Updated cumulative score for player ${player.id}:
+      Previous score: ${currentScore}
+      Round score: ${roundScore}
+      New total: ${currentScore + roundScore}`);
+  });
 });
 
 
@@ -367,6 +410,7 @@ Empirica.onGameEnded(({ game }) => {
     player.set("taskType", taskType);
     player.set("taskIndices", taskIndices);
     player.set("taskCategories", taskCategories);
+    player.set("requestTimestamp", false); // Reset the timestamp request flag so it doesn't request a timestamp on server restart
     if (playerRoundLLMs.has(player.id)) {
       playerRoundLLMs.delete(player.id);
       console.log(`Cleaned up LLMs for player ${player.id} in game ${game.id}`);

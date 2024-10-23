@@ -101,7 +101,7 @@ export function HHInterleaved() {
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Enter an animal name..."
+            placeholder="Enter an item..."
             className="flex-grow p-2 border border-gray-300 rounded mr-2"
             disabled={!isPlayerTurn}
           />

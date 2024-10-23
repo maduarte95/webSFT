@@ -173,7 +173,7 @@ export function HHCollab() {
             {round.get("waitingForAssistant") && (
               <div className="bg-red-50 border border-red-200 rounded-md p-3">
                 <p className="text-red-600 font-semibold text-center">
-                  ⚠️ Main player needs your help! Please provide a word.
+                  ⚠️ Your partner needs your help! Please provide a word.
                 </p>
               </div>
             )}
@@ -225,11 +225,11 @@ export function HHCollab() {
         {round.get("waitingForAssistant") && isMain && (
           <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>
         )}
-        {!isMain && round.get("waitingForAssistant") && (
+        {/* {!isMain && round.get("waitingForAssistant") && (
           <p className="mt-2 text-gray-600">The main player needs your help! Please provide a word.</p>
-        )}
+        )} */}
         {!isMain && !round.get("waitingForAssistant") && (
-          <p className="mt-2 text-gray-600">Waiting for the main player to request assistance...</p>
+          <p className="mt-2 text-gray-600">Waiting partner to request assistance...</p>
         )}
       </div>
     </div>

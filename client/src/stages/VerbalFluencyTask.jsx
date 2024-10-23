@@ -179,43 +179,93 @@ export function VerbalFluencyTask() {
   function handleKeyDown(event) {
     if (event.key === "Enter") {
       handleSendWord();
-    } else if (event.key === "ArrowUp") {
-      getHint();
-    }
+    } 
+    // else if (event.key === "ArrowUp") {
+    //   getHint();
+    // }
   }
 
   return (
-    <div className="flex flex-col items-center justify-center h-full">
-    <div className="text-2xl font-bold mb-4">
-      Your Role: Main Player
-    </div>
+  //   <div className="flex flex-col items-center justify-center h-full">
+  //   <div className="text-2xl font-bold mb-4">
+  //     Your Role: Main Player
+  //   </div>
     
-    <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
-    <div className="mt-8 text-4xl font-bold">
-      {lastWord || "No words yet"}
-    </div>
-    <div className="flex flex-col items-center mt-8">
+  //   <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+  //   <div className="mt-8 text-4xl font-bold">
+  //     {lastWord || "No words yet"}
+  //   </div>
+  //   <div className="flex flex-col items-center mt-8">
+  //     <input
+  //       value={currentWord}
+  //       onChange={(e) => setCurrentWord(e.target.value)}
+  //       onKeyDown={handleKeyDown}
+  //       placeholder="Enter an item..."
+  //       className="mb-4 p-2 border border-gray-300 rounded"
+  //     />
+  //     <div className="flex space-x-4">
+  //       <Button handleClick={handleSendWord}>Send</Button>
+  //       <Button 
+  //         handleClick={getHint} 
+  //         disabled={isLoading || !canRequestHint()}
+  //       >
+  //         {isLoading ? "Loading..." : "Hint"}
+  //       </Button>
+  //     </div>
+  //     {/* Add status message */}
+  //     {!canRequestHint() && !isLoading && (
+  //       <p className="mt-2 text-gray-600">Please enter a word before requesting another hint.</p>
+  //     )}
+  //   </div>
+  // </div>
+  <div className="flex flex-col items-center justify-center h-full">
+  <div className="text-2xl font-bold mb-4">
+    Your Role: Main Player
+  </div>
+  
+  <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+  
+  <div className="mt-8 text-4xl font-bold mb-8">
+    {lastWord || "No words yet"}
+  </div>
+  
+  <div className="w-full max-w-md">
+    <div className="flex items-center mb-4">
       <input
         value={currentWord}
         onChange={(e) => setCurrentWord(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder="Enter an item..."
-        className="mb-4 p-2 border border-gray-300 rounded"
+        className={`flex-grow p-2 border rounded mr-2 ${
+          isLoading 
+            ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+            : 'border-gray-300'
+        }`}
+        disabled={isLoading}
       />
-      <div className="flex space-x-4">
-        <Button handleClick={handleSendWord}>Send</Button>
-        <Button 
-          handleClick={getHint} 
-          disabled={isLoading || !canRequestHint()}
-        >
-          {isLoading ? "Loading..." : "Hint"}
-        </Button>
-      </div>
-      {/* Add status message */}
-      {!canRequestHint() && !isLoading && (
-        <p className="mt-2 text-gray-600">Please enter a word before requesting another hint.</p>
-      )}
+      <Button 
+        handleClick={handleSendWord}
+        disabled={isLoading || currentWord.trim() === ""}
+      >
+        Send
+      </Button>
     </div>
+    
+    <Button 
+      handleClick={getHint}
+      disabled={isLoading || !canRequestHint()}
+    >
+      Request Hint
+    </Button>
+
+    {/* Status Messages */}
+    {!canRequestHint() && !isLoading && (
+      <p className="mt-2 text-gray-600">Please enter a word before requesting another hint.</p>
+    )}
+    {isLoading && (
+      <p className="mt-2 text-gray-600">Waiting for partner's hint...</p>
+    )}
   </div>
+</div>
   );
 }
