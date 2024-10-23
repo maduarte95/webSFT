@@ -180,9 +180,11 @@ Empirica.onGameStart(({ game }) => {
   game.set("taskIndex", taskIndex);
   game.set("taskCategory", taskCategory);
   game.set("currentRoundIndex", 0);  // Initialize round counter
+  game.set("hhRoundIndex", 0);       // Initialize HH round counter
   console.log(`Task Index set for game ${game.id}:`, taskIndex);
   console.log(`Task Category set for game ${game.id}:`, taskCategory);
 });
+
 
 
 Empirica.onRoundStart(({ round }) => {
@@ -203,16 +205,42 @@ Empirica.onRoundStart(({ round }) => {
   
   round.set("category", category);
 
-  players.forEach(player => {
+  players.forEach((player, playerArrayIndex) => {
     player.round.set("category", category);
     player.round.set("cueType", treatment.cueType);
     player.round.set("taskType", treatment.taskType);
 
+    // If it's a HH round (either HHCollab or HHCollabSwitched), set roles based on HH round index
     if (round.get("name").includes("HHCollab")) {
-      const isFirstHHRound = round.get("name") === "HHCollab";
-      player.round.set("role", isFirstHHRound ? 
-        (player.index === 0 ? "main" : "helper") : 
-        (player.index === 0 ? "helper" : "main"));
+      const hhRoundIndex = game.get("hhRoundIndex") || 0;
+      
+      console.log(`Role assignment debug:
+        Round name: ${round.get("name")}
+        HH Round Index: ${hhRoundIndex}
+        Player Array Index: ${playerArrayIndex}
+        Current round index: ${currentRoundIndex}
+      `);
+
+      // Set role based on hhRoundIndex (alternating)
+      const mainRole = hhRoundIndex % 2 === 0 ? 
+        (playerArrayIndex === 0 ? "main" : "helper") : 
+        (playerArrayIndex === 0 ? "helper" : "main");
+      
+      player.round.set("role", mainRole);
+      player.set("role", mainRole);
+      
+      // Only increment hhRoundIndex after processing all players
+      if (playerArrayIndex === players.length - 1) {
+        game.set("hhRoundIndex", hhRoundIndex + 1);
+      }
+      
+      console.log(`Final role assignment:
+        Player ID: ${player.id}
+        Player Array Index: ${playerArrayIndex}
+        HH Round: ${hhRoundIndex}
+        Round Name: ${round.get("name")}
+        Role: ${mainRole}
+      `);
     }
   });
 
@@ -221,6 +249,56 @@ Empirica.onRoundStart(({ round }) => {
     round.set("currentTurnPlayerId", firstPlayerId);
   }
 });
+
+// Empirica.onStageStart(({ stage }) => {
+//   const startTime = Date.now();
+//   stage.set("serverStartTime", startTime);
+//   console.log(`Server start time set for stage ${stage.get("name")} at ${startTime} for game ${stage.currentGame.id}`);
+  
+//   if (!stage) {
+//     console.error("Stage is undefined in onStageStart");
+//     return;
+//   }
+  
+//   const stageName = stage.get("name");
+//   const game = stage.currentGame;
+//   const treatment = game.get("treatment");
+//   console.log(`Stage ${stageName} started for game ${game.id}. Treatment:`, treatment);
+
+//   const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
+
+//   if (llmStages.includes(stageName)) {
+//     game.players.forEach(player => {
+//       try {
+//         const roundName = player.currentRound.get("name");
+//         const category = player.currentRound.get("category");
+//         const llm = getOrCreateLLM(player.id, roundName, stageName, treatment, category);
+//         if (llm) {
+//           console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
+//         } else {
+//           console.log(`onStageStart LLM not required for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
+//         }
+//       } catch (error) {
+//         console.error(`onStageStart Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
+//       }
+//     });
+//   } else {
+//     console.log(`Stage ${stageName} does not require LLM creation.`);
+//   }
+
+//   if (stage.get("name") === "HHCollab") {
+//     const players = stage.currentGame.players;
+//     players.forEach((player, index) => {
+//       player.set("role", index === 0 ? "main" : "helper");
+//     });
+//   }
+//   if (stage.get("name") === "HHCollabSwitched") {
+//     const players = stage.currentGame.players;
+//     players.forEach((player, index) => {
+//       player.set("role", index === 0 ? "helper" : "main");
+//     });
+//   }
+// });
 
 Empirica.onStageStart(({ stage }) => {
   const startTime = Date.now();
@@ -256,19 +334,6 @@ Empirica.onStageStart(({ stage }) => {
     });
   } else {
     console.log(`Stage ${stageName} does not require LLM creation.`);
-  }
-
-  if (stage.get("name") === "HHCollab") {
-    const players = stage.currentGame.players;
-    players.forEach((player, index) => {
-      player.set("role", index === 0 ? "main" : "helper");
-    });
-  }
-  if (stage.get("name") === "HHCollabSwitched") {
-    const players = stage.currentGame.players;
-    players.forEach((player, index) => {
-      player.set("role", index === 0 ? "helper" : "main");
-    });
   }
 });
 
