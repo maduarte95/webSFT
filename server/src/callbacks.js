@@ -97,6 +97,7 @@ function setupRounds(game, treatment) {
     interleavedRound1.addStage({ name: "SwitchesId", duration: 300 });
     interleavedRound1.addStage({ name: firstTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 300 });
     interleavedRound1.set("category", categoryMap[firstTask.slice(-1)]);
+    console.log("interleavedRound1 category set to", categoryMap[firstTask.slice(-1)]); 
     interleavedRound1.set("treatment", treatment);  // Set treatment for the round
 
     const interleavedRound2 = game.addRound({ name: "Interleaved2" });
@@ -104,6 +105,7 @@ function setupRounds(game, treatment) {
     interleavedRound2.addStage({ name: "SwitchesId", duration: 300 });
     interleavedRound2.addStage({ name: secondTask.startsWith('h') ? "HHInterleavedResult" : "VFCollabResult", duration: 300 });
     interleavedRound2.set("category", categoryMap[secondTask.slice(-1)]);
+    console.log("interleavedRound2 category set to", categoryMap[secondTask.slice(-1)]);
     interleavedRound2.set("treatment", treatment);  // Set treatment for the round
 
   } else if (taskType === 'selfinitiated') {
@@ -128,7 +130,7 @@ function setupRounds(game, treatment) {
       round.addStage({ name: "SwitchesId", duration: 300 });
       round.addStage({ name: resultStageName, duration: 300 });
       round.set("category", categoryMap[categories[index]]);
-      console.log("category set to", categoryMap[categories[index]]); //this is being defined, it is correct
+      console.log(roundName, "category set to", categoryMap[categories[index]]); //this is being defined, it is correct
       round.set("treatment", treatment);  // Set treatment for the round
 
       console.log(`Round ${roundName} set up with stages: ${taskStageName} and ${resultStageName}`);
@@ -177,10 +179,11 @@ Empirica.onGameStart(({ game }) => {
 
   game.set("taskIndex", taskIndex);
   game.set("taskCategory", taskCategory);
-
+  game.set("currentRoundIndex", 0);  // Initialize round counter
   console.log(`Task Index set for game ${game.id}:`, taskIndex);
   console.log(`Task Category set for game ${game.id}:`, taskCategory);
 });
+
 
 Empirica.onRoundStart(({ round }) => {
   const game = round.currentGame;
@@ -188,28 +191,16 @@ Empirica.onRoundStart(({ round }) => {
   const treatment = game.get("treatment");
   const taskIndex = game.get("taskIndex");
   const taskCategory = game.get("taskCategory");
+  const currentRoundIndex = game.get("currentRoundIndex");
 
   console.log(`Round ${round.get("name")} started for game ${game.id}`);
+  console.log(`Current round index: ${currentRoundIndex}`);
   console.log(`Task Index for game ${game.id}:`, taskIndex);
   console.log(`Task Category for game ${game.id}:`, taskCategory);
 
-  let taskIndexPosition;
-  if (round.get("name").includes("Interleaved")) {
-    // For Interleaved rounds, find the index based on the stage name
-    const stageName = round.stages[0].get("name"); // Assuming the first stage is the task stage
-    taskIndexPosition = taskIndex.findIndex(task => task === stageName);
-  } else {
-    // For other rounds, keep the existing logic
-    taskIndexPosition = taskIndex.findIndex(task => task === round.get("name"));
-  }
-
-  if (taskIndexPosition === -1) {
-    console.error(`Failed to find task info for ${round.get("name")} in game ${game.id}`);
-    return;
-  }
-
-  const category = taskCategory[taskIndexPosition];
+  const category = taskCategory[currentRoundIndex];
   console.log(`Category for round ${round.get("name")}: ${category}`);
+  
   round.set("category", category);
 
   players.forEach(player => {
@@ -217,38 +208,19 @@ Empirica.onRoundStart(({ round }) => {
     player.round.set("cueType", treatment.cueType);
     player.round.set("taskType", treatment.taskType);
 
-    // For Human-Human collaboration rounds
     if (round.get("name").includes("HHCollab")) {
       const isFirstHHRound = round.get("name") === "HHCollab";
       player.round.set("role", isFirstHHRound ? 
         (player.index === 0 ? "main" : "helper") : 
         (player.index === 0 ? "helper" : "main"));
-      player.round.set("partner", "human");
     }
-
-    // For AI-partnered rounds
-    else if (round.get("name") === "VerbalFluencyTask" || round.get("name").includes("VerbalFluencyCollab")) {
-      player.round.set("role", "main");
-      player.round.set("partner", "ai");
-    }
-    // For Interleaved rounds
-    else if (round.get("name").includes("Interleaved")) {
-      player.round.set("partner", "human");
-    }
-
-    console.log(`Round data set for player ${player.id} in round ${round.get("name")} for game ${game.id}`);
   });
 
-  // Additional setup for interleaved rounds
   if (round.get("name").includes("Interleaved")) {
     const firstPlayerId = players[Math.floor(Math.random() * players.length)].id;
     round.set("currentTurnPlayerId", firstPlayerId);
-    console.log(`Set currentTurnPlayerId to ${firstPlayerId} for round ${round.get("name")}`);
   }
-
-  console.log(`Round ${round.get("name")} fully set up for game ${game.id}`);
 });
-
 
 Empirica.onStageStart(({ stage }) => {
   const startTime = Date.now();
@@ -327,6 +299,13 @@ Empirica.onStageEnded(({ stage }) => {
 
 Empirica.onRoundEnded(({ round }) => {
   const game = round.currentGame;
+  const currentRoundIndex = game.get("currentRoundIndex");
+
+  // Increment the round counter for next round
+  
+  game.set("currentRoundIndex", currentRoundIndex + 1);
+  console.log(`Round ${round.get("name")} ended. New round index: ${currentRoundIndex + 1}`);
+  // Add score to player's cumulative score
   game.players.forEach((player) => {
     // Get current cumulative score
     const currentScore = player.get("score") || 0;

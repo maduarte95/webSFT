@@ -12,6 +12,7 @@ import { PostSurvey } from "./intro-exit/PostSurvey";
 import { TypingSpeedTest } from "./intro-exit/TypingSpeedTest";
 import { IntroductionInterleaved } from "./intro-exit/IntroductionInterleaved";
 import { IntroductionSelfinitiated } from "./intro-exit/IntroductionSelfinitiated";
+import { FinalScoreSummary } from "./intro-exit/FinalScoreSummary";
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
@@ -35,7 +36,7 @@ export default function App() {
 
 
   function exitSteps({ game, player }) {
-    return [PostSurvey, PostQuestions, ExitSurvey];
+    return [PostSurvey, PostQuestions, FinalScoreSummary];
   }
 
   function consent() {

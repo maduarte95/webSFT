@@ -59,6 +59,46 @@ export function HHCollab() {
     });
   }
 
+  // async function handleSendWord() {
+  //   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
+
+  //   const clientStartTime = Date.now();
+  //   console.log(`Word submission initiated at client time: ${clientStartTime}`);
+
+  //   const timestamp = await getServerTimestamp();
+  //   const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+  //   const clientEndTime = Date.now();
+
+  //   console.log(`Word submission details:
+  //     Word: ${currentWord.trim()}
+  //     Request start time: ${clientStartTime}
+  //     Request end time: ${clientEndTime}
+  //     Request duration: ${clientEndTime - clientStartTime}ms
+  //     Server timestamp: ${timestamp}
+  //     Server start time: ${serverStartTime}
+  //     Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+  //   if (serverStartTime && timestamp) {
+  //     const relativeTimestamp = timestamp - serverStartTime;
+  //     const words = round.get("words") || [];
+  //     const updatedWords = [...words, { 
+  //       text: currentWord.trim(), 
+  //       source: isMain ? 'main' : 'helper', 
+  //       timestamp: relativeTimestamp 
+  //     }];
+  //     round.set("words", updatedWords);
+  //     setCurrentWord("");
+
+  //     if (!isMain) {
+  //       round.set("waitingForAssistant", false);
+  //     }
+
+  //     console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+  //   } else {
+  //     console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+  //   }
+  // }
+
   async function handleSendWord() {
     if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
@@ -70,34 +110,48 @@ export function HHCollab() {
     const clientEndTime = Date.now();
 
     console.log(`Word submission details:
-      Word: ${currentWord.trim()}
-      Request start time: ${clientStartTime}
-      Request end time: ${clientEndTime}
-      Request duration: ${clientEndTime - clientStartTime}ms
-      Server timestamp: ${timestamp}
-      Server start time: ${serverStartTime}
-      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+        Word: ${currentWord.trim()}
+        Request start time: ${clientStartTime}
+        Request end time: ${clientEndTime}
+        Request duration: ${clientEndTime - clientStartTime}ms
+        Server timestamp: ${timestamp}
+        Server start time: ${serverStartTime}
+        Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
 
     if (serverStartTime && timestamp) {
-      const relativeTimestamp = timestamp - serverStartTime;
-      const words = round.get("words") || [];
-      const updatedWords = [...words, { 
-        text: currentWord.trim(), 
-        source: isMain ? 'main' : 'helper', 
-        timestamp: relativeTimestamp 
-      }];
-      round.set("words", updatedWords);
-      setCurrentWord("");
+        const relativeTimestamp = timestamp - serverStartTime;
+        const words = round.get("words") || [];
+        
+        let wordEntry = { 
+            text: currentWord.trim(), 
+            source: isMain ? 'main' : 'helper', 
+            timestamp: relativeTimestamp 
+        };
 
-      if (!isMain) {
-        round.set("waitingForAssistant", false);
-      }
+        // Add helper latency measurement if this is a helper response
+        if (!isMain && round.get("waitingForAssistant")) {
+            const lastHintRequestTime = round.get("lastHintRequestTime");
+            if (lastHintRequestTime) {
+                const helperLatency = timestamp - lastHintRequestTime;
+                wordEntry.helperLatency = helperLatency;
+                console.log(`Helper response latency: ${helperLatency}ms`);
+            }
+        }
 
-      console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+        const updatedWords = [...words, wordEntry];
+        round.set("words", updatedWords);
+        setCurrentWord("");
+
+        if (!isMain) {
+            round.set("waitingForAssistant", false);
+            round.set("lastHintRequestTime", null); // Reset the request time
+        }
+
+        console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
     } else {
-      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+        console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
     }
-  }
+}
 
   async function handleRequestHint() {
 
@@ -128,6 +182,7 @@ export function HHCollab() {
       const requestTimestamps = round.get("requestTimestamps") || [];
       const updatedTimestamps = [...requestTimestamps, relativeTimestamp];
       round.set("requestTimestamps", updatedTimestamps);
+      round.set("lastHintRequestTime", timestamp); // Save the last hint request time
       console.log(`Updated timestamps for request #${hintRequestCount}: ${JSON.stringify(updatedTimestamps)}`);
     } else {
       console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
@@ -189,7 +244,7 @@ export function HHCollab() {
 
       <div className="w-full max-w-md">
         <div className="flex items-center mb-4">
-          <input
+          {/* <input
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -200,6 +255,18 @@ export function HHCollab() {
                 : 'border-gray-300'
             }`}
             disabled={(isMain && round.get("waitingForAssistant")) || (!isMain && !round.get("waitingForAssistant"))}
+          /> */}
+          <input
+          value={currentWord}
+          onChange={(e) => setCurrentWord(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder={isMain ? "Enter an item..." : "Enter your hint..."}
+          className={`flex-grow p-2 border rounded mr-2 ${
+            (isMain && round.get("waitingForAssistant")) || (!isMain && round.get("waitingForAssistant"))
+              ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+              : 'border-gray-300'
+          }`}
+          disabled={(isMain && round.get("waitingForAssistant")) || (!isMain && !round.get("waitingForAssistant"))}
           />
           <Button 
             handleClick={handleSendWord} 
