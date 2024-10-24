@@ -209,6 +209,26 @@ Empirica.onRoundStart(({ round }) => {
     player.round.set("category", category);
     player.round.set("cueType", treatment.cueType);
     player.round.set("taskType", treatment.taskType);
+    player.round.set("currentRoundIndex", currentRoundIndex);
+
+    // Set partner information based on round name and stage name
+    if (round.get("name").startsWith("Interleaved")) {
+      // For interleaved rounds, check the stage name
+      const currentTask = taskIndex[currentRoundIndex];
+      if (currentTask === "HHInterleaved") {
+        const partner = players.find(p => p.id !== player.id);
+        player.round.set("partner", partner.id);
+      } else if (currentTask === "VerbalFluencyCollab") {
+        player.round.set("partner", "AI");
+      }
+    } else if (round.get("name") === "VerbalFluencyTask") {
+      // For self-initiated AI round
+      player.round.set("partner", "AI");
+    } else if (round.get("name") === "HHCollab" || round.get("name") === "HHCollabSwitched") {
+      // For self-initiated human rounds
+      const partner = players.find(p => p.id !== player.id);
+      player.round.set("partner", partner.id);
+    }
 
     // If it's a HH round (either HHCollab or HHCollabSwitched), set roles based on HH round index
     if (round.get("name").includes("HHCollab")) {

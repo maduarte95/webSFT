@@ -12,6 +12,7 @@ export function HHInterleaved() {
   const isPlayerTurn = round.get("currentTurnPlayerId") === player.id;
   const stage = useStage();
   const category = player.round.get("category");
+  player.round.set("roundName", "InterleavedHH");
 
   useEffect(() => {
     const words = round.get("words") || [];

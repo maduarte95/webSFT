@@ -17,6 +17,8 @@ export function HHCollab() {
   const words = round.get("words") || [];
   const wordListRef = useRef(null);  // to enable autoscroll to bottom of word list
 
+  player.round.set("roundName", "selfInitiatedHH");
+
   // Helper function to check if hint request is allowed
   const canRequestHint = () => {
     if (words.length === 0) return true;
