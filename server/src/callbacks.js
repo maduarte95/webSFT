@@ -452,6 +452,9 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
     const response = await llm.generate(userPrompt);
     console.log(`API response received for player ${player.id}, game ${player.currentGame.id}:`, response);
     
+    //wait 5 seconds
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    
     await player.stage.set("apiResponse", response);
     console.log(`API response set on stage ${currentStage.get("name")} for player ${player.id}, game ${player.currentGame.id}`);
 
