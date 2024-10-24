@@ -30,7 +30,7 @@ export default function App() {
     const treatment = game.get("treatment");
     const taskType = treatment.taskType;
     return [
-      // MyConsent, PreTask, TypingSpeedTest,
+      MyConsent, PreTask, TypingSpeedTest,
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
   }

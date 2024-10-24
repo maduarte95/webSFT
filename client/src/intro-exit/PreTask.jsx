@@ -5,9 +5,11 @@ import { Button } from "../components/Button";
 export function PreTask({ next }) {
   const player = usePlayer();
   const [age, setAge] = useState("");
+  const [gender, setGender] = useState("");
   const [isNativeEnglish, setIsNativeEnglish] = useState(null);
   const [education, setEducation] = useState("");
   const [error, setError] = useState("");
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -24,6 +26,7 @@ export function PreTask({ next }) {
 
     // Set the collected data to the player
     player.set("age", age);
+    player.set("gender", gender)
     player.set("isNativeEnglish", isNativeEnglish);
     player.set("education", education);
 
@@ -48,6 +51,21 @@ export function PreTask({ next }) {
             onChange={(e) => setAge(e.target.value)}
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           />
+        </div>
+        <div>
+          <label htmlFor="gender" className="block text-sm font-medium text-gray-700">
+            Gender
+          </label>
+          <select
+            id="gender"
+            value={gender}
+            onChange={(e) => setGender(e.target.value)}
+            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+          >
+            <option value="">Select...</option>
+            <option value="m">Male</option>
+            <option value="f">Female</option>
+          </select>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">

@@ -444,45 +444,64 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   }
 });
 
+
 Empirica.onGameEnded(({ game }) => {
   console.log(`Game ${game.id} ended`);
   const taskType = game.get("taskType");
   const taskIndices = game.get("taskIndex");
   const taskCategories = game.get("taskCategory");
   console.log(`Task type: ${taskType}, taskIndices: ${taskIndices}, taskCategories: ${taskCategories}`);
+
+  // Find all LLM keys associated with this game's players
+  const keysToDelete = [];
+  for (const [key, llm] of playerRoundLLMs.entries()) {
+    game.players.forEach(player => {
+      if (key.startsWith(`${player.id}-`)) {
+        keysToDelete.push(key);
+        console.log(`Marked LLM key for deletion: ${key}`);
+      }
+    });
+  }
+
+  // Delete the LLMs
+  keysToDelete.forEach(key => {
+    playerRoundLLMs.delete(key);
+    console.log(`Deleted LLM for key: ${key}`);
+  });
+
+  // Log the size of the LLM map after cleanup
+  console.log(`LLM map size after cleanup: ${playerRoundLLMs.size}`);
+
   game.players.forEach(player => {
     player.set("taskType", taskType);
     player.set("taskIndices", taskIndices);
     player.set("taskCategories", taskCategories);
-    player.set("requestTimestamp", false); // Reset the timestamp request flag so it doesn't request a timestamp on server restart
-    if (playerRoundLLMs.has(player.id)) {
-      playerRoundLLMs.delete(player.id);
-      console.log(`Cleaned up LLMs for player ${player.id} in game ${game.id}`);
-    }
-
-
+    player.set("requestTimestamp", false);
+    console.log(`Game ended; player ${player.id} task type, indices, and categories recorded and requestTimestamp reset`);
   });
 });
 
-
-Empirica.on("player", "requestTimestamp", (ctx, { player }) => {
-  const currentTime = Date.now();
-  const previousTimestamp = player.get("serverTimestamp");
-  console.log(`Server timestamp request:
-    Player: ${player.id}
-    Current time: ${currentTime}
-    Previous timestamp: ${previousTimestamp}
-    Time since last request: ${previousTimestamp ? currentTime - previousTimestamp : 'N/A'}ms`);
+Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
+  const changes = {
+    timestamp: Date.now(),
+    requestFlag: false
+  };
   
-  player.set("serverTimestamp", currentTime);
+  // Apply all changes at once
+  await Promise.all([
+    player.set("serverTimestamp", changes.timestamp),
+    player.set("requestTimestamp", changes.requestFlag)
+  ]);
   
-  Empirica.flush().then(() => {
-    const storedTimestamp = player.get("serverTimestamp");
-    console.log(`Timestamp update for player ${player.id}:
-      Set time: ${currentTime}
-      Stored time after flush: ${storedTimestamp}
-      Difference: ${storedTimestamp - currentTime}ms`);
-  });
+  // Now flush
+  await Empirica.flush();
   
-  player.set("requestTimestamp", false);
+  // Log after everything is completed
+  const storedTimestamp = player.get("serverTimestamp");
+  console.log(`Timestamp update completed for player ${player.id}:
+    Set time: ${changes.timestamp}
+    Stored time: ${storedTimestamp}
+    Request flag: ${player.get("requestTimestamp")}
+  `);
 });
+
