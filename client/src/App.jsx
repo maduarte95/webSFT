@@ -98,7 +98,7 @@ export default function App() {
     const treatment = game.get("treatment");
     const taskType = treatment.taskType;
     return [
-      MyConsent, PreTask, TypingSpeedTest,
+      PreTask, TypingSpeedTest,
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
   }
@@ -107,13 +107,13 @@ export default function App() {
     return [PostSurvey, PostQuestions, FinalScoreSummary];
   }
 
-    // Add this consent configuration function
-  const consentConfig = {
-    consent: MyConsent,
-    onConsent: () => {
-      console.log("Consent processed in App");
-    }
-  };
+  //   // Add this consent configuration function
+  // const consentConfig = {
+  //   consent: MyConsent,
+  //   onConsent: () => {
+  //     console.log("Consent processed in App");
+  //   }
+  // };
 
   return (
     <EmpiricaParticipant url={url} ns={playerKey} modeFunc={EmpiricaClassic}>
@@ -121,7 +121,7 @@ export default function App() {
         <EmpiricaMenu position="bottom-left" />
         <div className="h-full overflow-auto">
           <EmpiricaContext
-            consent={consentConfig}
+            consent={MyConsent}
             introSteps={introSteps}
             exitSteps={exitSteps}
           >
