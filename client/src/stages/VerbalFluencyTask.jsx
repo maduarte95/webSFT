@@ -238,7 +238,7 @@
 //   );
 // }
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
@@ -254,6 +254,7 @@ export function VerbalFluencyTask() {
   const round = useRound();
   const stage = useStage();
   const category = player.round.get("category");
+  const inputRef = useRef(null);
 
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
@@ -267,6 +268,12 @@ export function VerbalFluencyTask() {
     return lastWord.source === 'user';
   };
   
+  useEffect(() => {
+    if (!isLoading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isLoading]);
+
   useEffect(() => {
     player.round.set("roundName", "SelfInitiatedLLM");
     console.log(`Component rendered. Start time: ${stage.get("serverStartTime")}, Current time: ${Date.now()}`);
@@ -426,6 +433,7 @@ export function VerbalFluencyTask() {
       <div className="w-full max-w-md">
         <div className="flex items-center mb-4">
           <input
+            ref = {inputRef}
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -436,6 +444,7 @@ export function VerbalFluencyTask() {
                 : 'border-gray-300'
             }`}
             disabled={isLoading}
+            autoFocus
           />
           <Button 
             handleClick={handleSendWord}

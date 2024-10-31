@@ -12,7 +12,7 @@ export function MyConsent({ onConsent }) {
       <p style={{ marginBottom: '1em' }}>Welcome,</p>
 
       <p style={{ marginBottom: '1em' }}>
-        We wish to invite you to participate in a study exploring the mechanisms of creative collaboration with artificial intelligence (AI) systems. Your participation involves performing a computer-based task in which you and a partner will be asked to name items from different categories within a time limit. You may collaborate with a human partner or an AI system.
+        We wish to invite you to participate in a study exploring the mechanisms of creative collaboration with artificial intelligence (AI) systems. Your participation involves performing a computer-based task in which you and a partner will be asked to name items from different categories within a time limit. You may collaborate with a human partner or a computer system.
       </p>
 
       <p style={{ marginBottom: '1em' }}>

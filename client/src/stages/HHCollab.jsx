@@ -16,6 +16,7 @@ export function HHCollab() {
   const category = player.round.get("category");
   const words = round.get("words") || [];
   const wordListRef = useRef(null);  // to enable autoscroll to bottom of word list
+  const inputRef = useRef(null);
 
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
@@ -31,6 +32,12 @@ export function HHCollab() {
     const lastWord = words[words.length - 1];
     return lastWord.source === 'main'; //checks if last word was submitted by main player
   };
+
+  useEffect(() => {
+    if (inputRef.current && ((isMain && !round.get("waitingForAssistant")) || (!isMain && round.get("waitingForAssistant")))) {
+      inputRef.current.focus();
+    }
+  }, [isMain, round.get("waitingForAssistant")]);
 
   useEffect(() => {
     if (wordListRef.current && !isMain) {
@@ -225,6 +232,7 @@ export function HHCollab() {
             disabled={(isMain && round.get("waitingForAssistant")) || (!isMain && !round.get("waitingForAssistant"))}
           /> */}
           <input
+          ref={inputRef}
           value={currentWord}
           onChange={(e) => setCurrentWord(e.target.value)}
           onKeyDown={handleKeyDown}

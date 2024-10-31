@@ -18,6 +18,12 @@ export function PreTask({ next }) {
       return;
     }
 
+    // Check if the age is within the limit
+    if (age > 100) {
+      setError("Age must be 100 or below.");
+      return;
+    }
+  
     // Check if the participant meets the requirements ## change to not native!
     if (isNativeEnglish === false) { 
       setError("This study requires native English speakers. Thank you for your interest.");

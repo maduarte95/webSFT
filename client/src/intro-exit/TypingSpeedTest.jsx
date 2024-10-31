@@ -166,6 +166,9 @@ export function TypingSpeedTest({ next }) {
         rows={3}
         disabled={isFinished}
         placeholder="Start typing here..."
+        onCopy={(e) => e.preventDefault()}
+        onCut={(e) => e.preventDefault()}
+        onPaste={(e) => e.preventDefault()}
       />
       
       {isFinished && (

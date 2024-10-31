@@ -261,7 +261,7 @@
 //   );
 // }
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
@@ -273,12 +273,20 @@ export function VerbalFluencyCollab() {
   const round = useRound();
   const stage = useStage();
   const category = player.round.get("category");
+  const inputRef = useRef(null);
 
   // Wait for serverStartTime before rendering interactive elements
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
     return <div>Loading...</div>;
   }
+
+  useEffect(() => {
+    // When isWaitingForAI becomes false, focus the input
+    if (!isWaitingForAI && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isWaitingForAI]);  
 
   useEffect(() => {
     player.round.set("roundName", "InterleavedLLM");
@@ -408,12 +416,14 @@ export function VerbalFluencyCollab() {
       <div className="w-full max-w-md">
         <div className="flex items-center mb-4">
           <input
+            ref={inputRef}  // Add this line
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter an item..."
             className="flex-grow p-2 border border-gray-300 rounded mr-2"
             disabled={isWaitingForAI}
+            autoFocus
           />
           <Button 
             handleClick={handleSendWord} 

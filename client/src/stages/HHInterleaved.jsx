@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
 
@@ -13,12 +13,19 @@ export function HHInterleaved() {
   const stage = useStage();
   const category = player.round.get("category");
   player.round.set("roundName", "InterleavedHH");
+  const inputRef = useRef(null);
 
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
     return <div>Loading...</div>;
   }
+
+  useEffect(() => {
+    if (isPlayerTurn && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isPlayerTurn]);
   
 
   useEffect(() => {
@@ -106,12 +113,14 @@ export function HHInterleaved() {
       <div className="w-full max-w-md">
         <div className="flex items-center mb-4">
           <input
+            ref = {inputRef}
             value={currentWord}
             onChange={(e) => setCurrentWord(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Enter an item..."
             className="flex-grow p-2 border border-gray-300 rounded mr-2"
             disabled={!isPlayerTurn}
+            autoFocus={isPlayerTurn}
           />
           <Button 
             handleClick={handleSendWord} 
