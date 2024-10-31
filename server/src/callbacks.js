@@ -407,65 +407,65 @@ Empirica.onRoundEnded(({ round }) => {
 });
 
 
-Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
-  console.log(`API trigger changed for player ${player.id} in game ${player.currentGame.id}`);
-  const currentStage = player.currentStage;
-  const currentRound = player.currentRound;
-  console.log(`Current stage name: ${currentStage.get("name")}, game ${player.currentGame.id}`);
+// Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
+//   console.log(`API trigger changed for player ${player.id} in game ${player.currentGame.id}`);
+//   const currentStage = player.currentStage;
+//   const currentRound = player.currentRound;
+//   console.log(`Current stage name: ${currentStage.get("name")}, game ${player.currentGame.id}`);
 
-  if (!player.get("apiTrigger")) {
-    console.log(`API trigger is false, skipping API call for player ${player.id}, game ${player.currentGame.id}`);
-    return;
-  }
+//   if (!player.get("apiTrigger")) {
+//     console.log(`API trigger is false, skipping API call for player ${player.id}, game ${player.currentGame.id}`);
+//     return;
+//   }
 
-  console.log(`Processing API call for player ${player.id}, game ${player.currentGame.id}`);
+//   console.log(`Processing API call for player ${player.id}, game ${player.currentGame.id}`);
 
-  try {
-    const treatment = player.currentGame.get("treatment");
-    if (!treatment) {
-      throw new Error("Treatment not found for the current round");
-    }
-    console.log(`Treatment for current round: ${JSON.stringify(treatment)}`);
+//   try {
+//     const treatment = player.currentGame.get("treatment");
+//     if (!treatment) {
+//       throw new Error("Treatment not found for the current round");
+//     }
+//     console.log(`Treatment for current round: ${JSON.stringify(treatment)}`);
     
-    const roundName = currentRound.get("name");
-    const category = player.round.get("category"); // Get the category from the round
-    console.log(`onTrigger called, cueType: ${treatment.cueType}, roundName: ${roundName}, category: ${category}`);
-    const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment, category);
-    console.log(`onTrigger - LLM retrieved for player ${player.id}, game ${player.currentGame.id}`);
+//     const roundName = currentRound.get("name");
+//     const category = player.round.get("category"); // Get the category from the round
+//     console.log(`onTrigger called, cueType: ${treatment.cueType}, roundName: ${roundName}, category: ${category}`);
+//     const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment, category);
+//     console.log(`onTrigger - LLM retrieved for player ${player.id}, game ${player.currentGame.id}`);
 
-    let userPrompt;
-    switch (currentStage.get("name")) {
-      case "apiInteraction":
-      case "LocalAPI":
-        userPrompt = "Cheesed to meet you!";
-        break;
-      case "VerbalFluencyTask":
-      case "VerbalFluencyCollab":
-        const pastWords = player.round.get("words") || [];
-        const lastWord = player.round.get("lastWord") || "";
-        userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
-        break;
-      default:
-        throw new Error("Unsupported stage for API call");
-    }
+//     let userPrompt;
+//     switch (currentStage.get("name")) {
+//       case "apiInteraction":
+//       case "LocalAPI":
+//         userPrompt = "Cheesed to meet you!";
+//         break;
+//       case "VerbalFluencyTask":
+//       case "VerbalFluencyCollab":
+//         const pastWords = player.round.get("words") || [];
+//         const lastWord = player.round.get("lastWord") || "";
+//         userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+//         break;
+//       default:
+//         throw new Error("Unsupported stage for API call");
+//     }
 
-    const response = await llm.generate(userPrompt);
-    console.log(`API response received for player ${player.id}, game ${player.currentGame.id}:`, response);
+//     const response = await llm.generate(userPrompt);
+//     console.log(`API response received for player ${player.id}, game ${player.currentGame.id}:`, response);
     
-    //wait 3 seconds
-    await new Promise(resolve => setTimeout(resolve, 3000));
+//     //wait 3 seconds
+//     await new Promise(resolve => setTimeout(resolve, 3000));
     
-    await player.stage.set("apiResponse", response);
-    console.log(`API response set on stage ${currentStage.get("name")} for player ${player.id}, game ${player.currentGame.id}`);
+//     await player.stage.set("apiResponse", response);
+//     console.log(`API response set on stage ${currentStage.get("name")} for player ${player.id}, game ${player.currentGame.id}`);
 
-  } catch (error) {
-    console.error(`API call or state update failed for player ${player.id}, game ${player.currentGame.id}`, error);
-    await player.stage.set("apiError", error.message);
-  } finally {
-    await player.set("apiTrigger", false);
-    console.log(`API trigger reset to false for player ${player.id}, game ${player.currentGame.id}`);
-  }
-});
+//   } catch (error) {
+//     console.error(`API call or state update failed for player ${player.id}, game ${player.currentGame.id}`, error);
+//     await player.stage.set("apiError", error.message);
+//   } finally {
+//     await player.set("apiTrigger", false);
+//     console.log(`API trigger reset to false for player ${player.id}, game ${player.currentGame.id}`);
+//   }
+// });
 
 
 Empirica.onGameEnded(({ game }) => {
@@ -502,6 +502,67 @@ Empirica.onGameEnded(({ game }) => {
     player.set("requestTimestamp", false);
     console.log(`Game ended; player ${player.id} task type, indices, and categories recorded and requestTimestamp reset`);
   });
+});
+
+Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
+  console.log("API trigger changed for player", player.id);
+  const currentStage = player.currentStage;
+  const currentRound = player.currentRound;
+  console.log("Current stage name:", currentStage.get("name"));
+
+  if (!player.get("apiTrigger")) {
+      console.log("API trigger is false, skipping API call");
+      return;
+  }
+
+  console.log("Processing API call");
+
+  try {
+      const treatment = player.currentGame.get("treatment");
+      if (!treatment) {
+          throw new Error("Treatment not found for the current round");
+      }
+      console.log("Treatment for current round:", treatment);
+      
+      const roundName = currentRound.get("name");
+      const category = player.round.get("category");
+      const requestTime = Date.now();
+      player.round.set("lastRequestTime", requestTime);
+
+      console.log("Making API call with:", {treatment, roundName, category});
+      const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment, category);
+      
+      const pastWords = player.round.get("words") || [];
+      const lastWord = player.round.get("lastWord") || "";
+      const userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+
+      const llmResponse = await llm.generate(userPrompt);
+
+      // Add artificial delay
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      const responseTime = Date.now();
+      const apiLatency = responseTime - requestTime;
+
+      console.log("API response received:", {
+          text: llmResponse,
+          timestamp: responseTime,
+          requestTime: requestTime,
+          apiLatency: apiLatency
+      });
+      
+      await player.stage.set("apiResponse", {
+          text: llmResponse,
+          timestamp: responseTime,
+          apiLatency: apiLatency
+      });
+
+  } catch (error) {
+      console.error("API call or state update failed:", error);
+      await player.stage.set("apiError", error.message);
+  } finally {
+      await player.set("apiTrigger", false);
+  }
 });
 
 Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {

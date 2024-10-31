@@ -17,6 +17,12 @@ export function HHCollab() {
   const words = round.get("words") || [];
   const wordListRef = useRef(null);  // to enable autoscroll to bottom of word list
 
+  // Add serverStartTime check
+  const serverStartTime = stage.get("serverStartTime");
+  if (!serverStartTime) {
+    return <div>Loading...</div>;
+  }
+
   player.round.set("roundName", "selfInitiatedHH");
 
   // Helper function to check if hint request is allowed
@@ -61,46 +67,6 @@ export function HHCollab() {
     });
   }
 
-  // async function handleSendWord() {
-  //   if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
-
-  //   const clientStartTime = Date.now();
-  //   console.log(`Word submission initiated at client time: ${clientStartTime}`);
-
-  //   const timestamp = await getServerTimestamp();
-  //   const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
-  //   const clientEndTime = Date.now();
-
-  //   console.log(`Word submission details:
-  //     Word: ${currentWord.trim()}
-  //     Request start time: ${clientStartTime}
-  //     Request end time: ${clientEndTime}
-  //     Request duration: ${clientEndTime - clientStartTime}ms
-  //     Server timestamp: ${timestamp}
-  //     Server start time: ${serverStartTime}
-  //     Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
-
-  //   if (serverStartTime && timestamp) {
-  //     const relativeTimestamp = timestamp - serverStartTime;
-  //     const words = round.get("words") || [];
-  //     const updatedWords = [...words, { 
-  //       text: currentWord.trim(), 
-  //       source: isMain ? 'main' : 'helper', 
-  //       timestamp: relativeTimestamp 
-  //     }];
-  //     round.set("words", updatedWords);
-  //     setCurrentWord("");
-
-  //     if (!isMain) {
-  //       round.set("waitingForAssistant", false);
-  //     }
-
-  //     console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
-  //   } else {
-  //     console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
-  //   }
-  // }
-
   async function handleSendWord() {
     if (currentWord.trim() === "" || (isMain && round.get("waitingForAssistant"))) return;
 
@@ -108,7 +74,7 @@ export function HHCollab() {
     console.log(`Word submission initiated at client time: ${clientStartTime}`);
 
     const timestamp = await getServerTimestamp();
-    const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+    // const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
     const clientEndTime = Date.now();
 
     console.log(`Word submission details:

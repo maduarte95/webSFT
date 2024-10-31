@@ -14,6 +14,13 @@ export function HHInterleaved() {
   const category = player.round.get("category");
   player.round.set("roundName", "InterleavedHH");
 
+  // Add serverStartTime check
+  const serverStartTime = stage.get("serverStartTime");
+  if (!serverStartTime) {
+    return <div>Loading...</div>;
+  }
+  
+
   useEffect(() => {
     const words = round.get("words") || [];
     const lastSavedWord = words[words.length - 1];
