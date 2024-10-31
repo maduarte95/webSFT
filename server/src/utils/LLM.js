@@ -67,17 +67,20 @@ import Together from "together-ai";
 import dotenv from "dotenv";
 import fs from 'fs';
 import path from 'path';
+import config from '../../llm_config.json' assert { type: 'json' };
 
-dotenv.config();
+// dotenv.config();
 
 export class LLM {
     constructor(systemPrompt = "") {
-      const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY;
-      this.client = new Together({ apiKey: TOGETHER_API_KEY });
-  
+      // const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY;
+      
       // Load configuration
-      const configPath = path.join(__dirname, '..', 'llm_config.json');
-      const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      // const configPath = path.join(__dirname, '..', 'llm_config.json');
+      // const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+      const TOGETHER_API_KEY = config.apiKey;
+      this.client = new Together({ apiKey: TOGETHER_API_KEY });
+
   
       this.model = config.defaultModel;
       this.systemPrompt = systemPrompt;

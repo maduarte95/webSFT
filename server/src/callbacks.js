@@ -2,6 +2,9 @@ import { ClassicListenersCollector } from "@empirica/core/admin/classic";
 import { LLM } from "./utils/LLM.js";
 import fs from 'fs';
 import path from 'path';
+import { prompts } from './prompts.js'
+
+
 
 export const Empirica = new ClassicListenersCollector();
 
@@ -18,14 +21,14 @@ const playerRoundLLMs = new Map();
 // const llmConfig = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 
 
-function readPromptFile(filePath) {
-  try {
-    return fs.readFileSync(filePath, 'utf8');
-  } catch (error) {
-    console.error(`Error reading prompt file: ${error}`);
-    return null;
-  }
-}
+// function readPromptFile(filePath) {
+//   try {
+//     return fs.readFileSync(filePath, 'utf8');
+//   } catch (error) {
+//     console.error(`Error reading prompt file: ${error}`);
+//     return null;
+//   }
+// }
 
 
 function getOrCreateLLM(playerId, roundName, stageName, treatment, category) {
@@ -45,13 +48,16 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment, category) {
     if (stageName === "VerbalFluencyCollab" || stageName === "VerbalFluencyTask") {
       if (treatment && treatment.cueType === "adjacent") {
         const promptPath = path.join(__dirname, '..', 'prompts', 'adjacent.txt');
-        systemPrompt = readPromptFile(promptPath);
+        // systemPrompt = readPromptFile(promptPath);
+        systemPrompt = prompts.adjacent;
       } else if (treatment && treatment.cueType === "divergent") {
         const promptPath = path.join(__dirname, '..', 'prompts', 'divergent.txt');
-        systemPrompt = readPromptFile(promptPath);
+        // systemPrompt = readPromptFile(promptPath);
+        systemPrompt = prompts.divergent;
       } else if (treatment && treatment.cueType === "inferred") {
         const promptPath = path.join(__dirname, '..', 'prompts', 'inferred.txt');
-        systemPrompt = readPromptFile(promptPath);
+        // systemPrompt = readPromptFile(promptPath);
+        systemPrompt = prompts.inferred;
       }
       
       if (!systemPrompt) {
@@ -538,8 +544,8 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
       const llmResponse = await llm.generate(userPrompt);
 
-      // Add artificial delay
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // Add artificial delay of 1.5s
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
       const responseTime = Date.now();
       const apiLatency = responseTime - requestTime;
