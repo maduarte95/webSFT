@@ -77,8 +77,9 @@ export class LLM {
       
       // Load configuration
       // const configPath = path.join(__dirname, '..', 'llm_config.json');
-      // const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-      const TOGETHER_API_KEY = config.apiKey;
+      // const config = JSON.parse(fs.readFileSync(configPath, 'utf8')); 
+      //add option to get api key from env or if not present use config file
+      const TOGETHER_API_KEY = process.env.TOGETHER_API_KEY || config.apiKey;
       this.client = new Together({ apiKey: TOGETHER_API_KEY });
 
   
