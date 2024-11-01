@@ -56,18 +56,18 @@ export function HHCollab() {
   }, [round.get("words")]);
 
   async function getServerTimestamp() {
-    console.log("Requesting server timestamp");
+    console.log("Requesting server timestamp for stage", stage.get("name"));
     player.set("requestTimestamp", true);
     await new Promise(resolve => setTimeout(resolve, 50));
     
     return new Promise((resolve) => {
       const checkTimestamp = () => {
-        const timestamp = player.get("serverTimestamp");
+        const timestamp = player.stage.get("serverTimestamp");
         if (timestamp !== undefined) {
           console.log("Received server timestamp:", timestamp);
           resolve(timestamp);
         } else {
-          setTimeout(checkTimestamp, 50);
+          setTimeout(checkTimestamp, 50); 
         }
       };
       checkTimestamp();

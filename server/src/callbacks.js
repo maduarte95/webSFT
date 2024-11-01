@@ -571,27 +571,81 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   }
 });
 
-Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
-  const changes = {
-    timestamp: Date.now(),
-    requestFlag: false
-  };
+// Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
+//   const changes = {
+//     timestamp: Date.now(),
+//     requestFlag: false
+//   };
   
-  // Apply all changes at once
-  await Promise.all([
-    player.set("serverTimestamp", changes.timestamp),
-    player.set("requestTimestamp", changes.requestFlag)
-  ]);
+//   // Apply all changes at once
+//   await Promise.all([
+//     player.set("serverTimestamp", changes.timestamp),
+//     player.set("requestTimestamp", changes.requestFlag)
+//   ]);
   
-  // Now flush
-  await Empirica.flush();
+//   // Now flush
+//   await Empirica.flush();
   
-  // Log after everything is completed
-  const storedTimestamp = player.get("serverTimestamp");
-  console.log(`Timestamp update completed for player ${player.id}:
-    Set time: ${changes.timestamp}
-    Stored time: ${storedTimestamp}
-    Request flag: ${player.get("requestTimestamp")}
-  `);
-});
+//   // Log after everything is completed
+//   const storedTimestamp = player.get("serverTimestamp");
+//   console.log(`Timestamp update completed for player ${player.id}:
+//     Set time: ${changes.timestamp}
+//     Stored time: ${storedTimestamp}
+//     Request flag: ${player.get("requestTimestamp")}
+//   `);
+// });
 
+//previou working code
+// Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
+//   console.log(`[Timestamp Service] Request from player ${player.id}`);
+//   console.log(`[Timestamp Service] Player stage: ${player.currentStage.get("name")}`);
+//   console.log(`[Timestamp Service] Previous timestamp: ${player.get("serverTimestamp")}`);
+
+//   const changes = {
+//     timestamp: Date.now(),
+//     requestFlag: false
+//   };
+//   console.log(`[Timestamp Service] Generated new timestamp: ${changes.timestamp}`);
+
+//   // // Apply all changes at once
+//   // await Promise.all([
+//   //   player.stage.set("serverTimestamp", changes.timestamp),
+//   //   player.stage.set("requestTimestamp", changes.requestFlag)
+//   // ]);
+  
+//   // // Now flush
+//   // await Empirica.flush();
+
+//   player.stage.set("serverTimestamp", changes.timestamp),
+//   player.stage.set("requestTimestamp", changes.requestFlag)
+//   Empirica.flush();
+  
+//   // Log after everything is completed
+//   const storedTimestamp = player.stage.get("serverTimestamp");
+//   console.log(`Timestamp update completed for player ${player.id}:
+//     Set time: ${changes.timestamp}
+//     Stored time: ${storedTimestamp}
+//     Request flag: ${player.get("requestTimestamp")}
+//   `);
+// });
+
+//stripped down code
+
+Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
+  console.log(`[Timestamp Service] New request from player ${player.id}`);
+  console.log(`[Timestamp Service] Current stage: ${player.currentStage.get("name")}`);
+  console.log(`[Timestamp Service] Current timestamp: ${player.stage.get("serverTimestamp")}`);
+
+  const timestamp = Date.now();
+  
+  await player.stage.set("serverTimestamp", timestamp);
+  await player.set("requestTimestamp", false);
+  await Empirica.flush();
+
+  const verifyTimestamp = player.stage.get("serverTimestamp");
+  console.log(`[Timestamp Service] Response for ${player.id}:`, {
+    set: timestamp,
+    verified: verifyTimestamp,
+    match: timestamp === verifyTimestamp
+  });
+});

@@ -15,6 +15,8 @@ export function HHInterleaved() {
   player.round.set("roundName", "InterleavedHH");
   const inputRef = useRef(null);
 
+  const [currentTimestamp, setCurrentTimestamp] = useState(null);
+
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
@@ -38,65 +40,217 @@ export function HHInterleaved() {
     player.round.set("score", words.length); //set both players' score to total word count  
   }, [round.get("words"), player.id]); 
 
+  useEffect(() => {
+    const timestamp = player.stage.get("serverTimestamp");
+    console.log(`[Player ${player.id}] Timestamp changed:`, timestamp);
+    // if (timestamp) {
+    //   setCurrentTimestamp(timestamp);
+    // }
+  }, [player.stage.get("serverTimestamp")]);
+
+
+  // async function getServerTimestamp() {
+
+  //   console.log("Requesting server timestamp for stage", stage.get("name"));
+  //   player.set("requestTimestamp", true);
+    
+  //   // await new Promise(resolve => setTimeout(resolve, 50));
+    
+  //   // return new Promise((resolve) => {
+  //   //   const checkTimestamp = () => {
+  //   //     const timestamp = player.stage.get("serverTimestamp");
+  //   //     if (timestamp !== undefined) {
+  //   //       console.log("Received server timestamp:", timestamp);
+  //   //       resolve(timestamp);
+  //   //     } else {
+  //   //       setTimeout(checkTimestamp, 50);
+  //   //     }
+  //   //   };
+  //   //   checkTimestamp();
+  //   // });
+
+  //   // const timestamp = player.stage.get("serverTimestamp");
+  //   // console.log("Received server timestamp in getServerTimestamp:", timestamp);
+  //   // return timestamp;
+  // }
+
+  // async function getServerTimestamp() {
+  //   console.log("Requesting server timestamp for stage", stage.get("name"));
+    
+  //   // Clear existing timestamp
+  //   player.stage.set("serverTimestamp", undefined);
+    
+  //   // Record request time
+  //   const requestTime = Date.now();
+    
+  //   // Set request flag
+  //   player.set("requestTimestamp", true);
+    
+  //   return Promise.race([
+  //     new Promise((resolve) => {
+  //       const checkTimestamp = () => {
+  //         const timestamp = player.stage.get("serverTimestamp");
+  //         // Only accept timestamps newer than our request
+  //         if (timestamp && timestamp > requestTime) {
+  //           resolve(timestamp);
+  //         } else {
+  //           setTimeout(checkTimestamp, 50);
+  //         }
+  //       };
+  //       checkTimestamp();
+  //     }),
+  //     new Promise((_, reject) => 
+  //       setTimeout(() => reject(new Error("Timestamp request timeout")), 5000)
+  //     )
+  //   ]).catch(error => {
+  //     console.error("Error getting timestamp:", error);
+  //     return null;
+  //   });
+  // }
+
+  // async function handleSendWord() {
+  //   if (currentWord.trim() === "" || !isPlayerTurn) return;
+  
+  //   const clientStartTime = Date.now();
+  //   console.log(`Word submission initiated at client time: ${clientStartTime}`);
+  //   console.log(`[Player ${player.id}] Current turn: ${round.get("currentTurnPlayerId")}`);
+
+  //   // // Clear own timestamp before getting new one
+  //   // player.stage.set("serverTimestamp", undefined);
+  //   // console.log(`[Player ${player.id}] Cleared own cached timestamp before request`);
+
+  //   // // const timestamp = await getServerTimestamp();
+  //   // await getServerTimestamp();
+  //   // console.log("Awaited getServerTimestamp, new flag:", player.get("requestTimestamp"));
+    
+  //   // // Wait briefly for the timestamp to be updated via the useEffect hook
+  //   // await new Promise(resolve => setTimeout(resolve, 100));
+
+  //   // // const timestamp = player.stage.get("serverTimestamp");
+  //   // const timestamp = currentTimestamp;
+  //   // console.log(`[Player ${player.id}] Received timestamp: ${timestamp}`);
+  //   // console.log(`[Player ${player.id}] Previous words:`, round.get("words"));
+
+  //   const timestamp = await getServerTimestamp();
+  //   if (!timestamp) {
+  //     console.error("Failed to get valid timestamp");
+  //     return;
+  //   }
+
+  //   const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
+  //   const clientEndTime = Date.now();
+
+  //   console.log(`Word submission details:
+  //     Word: ${currentWord.trim()}
+  //     Request start time: ${clientStartTime}
+  //     Request end time: ${clientEndTime}
+  //     Request duration: ${clientEndTime - clientStartTime}ms
+  //     Server timestamp: ${timestamp}
+  //     Server start time: ${serverStartTime}
+  //     Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+
+  //   if (serverStartTime && timestamp) {
+  //     const relativeTimestamp = timestamp - serverStartTime;
+  //     const words = round.get("words") || [];
+  //     const updatedWords = [...words, { 
+  //       text: currentWord.trim(), 
+  //       player: player.id, 
+  //       timestamp: relativeTimestamp 
+  //     }];
+  //     round.set("words", updatedWords);
+  //     setCurrentWord("");
+    
+  //     // Switch turns
+  //     round.set("currentTurnPlayerId", otherPlayer.id);
+
+  //     console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+  //   } else {
+  //     console.error("Invalid timestamp or start time", { timestamp, serverStartTime }); 
+  //   }
+  // }
+
+  //stripped down code
 
   async function getServerTimestamp() {
-    console.log("Requesting server timestamp");
-    player.set("requestTimestamp", true);
+    console.log("Requesting server timestamp for stage", stage.get("name"));
     
-    await new Promise(resolve => setTimeout(resolve, 50));
+    // Clear existing timestamp
+    await player.stage.set("serverTimestamp", undefined);
+    console.log(`[Player ${player.id}] Cleared existing timestamp`);
     
-    return new Promise((resolve) => {
+    // Set request flag
+    await player.set("requestTimestamp", true);
+    console.log(`[Player ${player.id}] Set request flag`);
+  
+    return new Promise((resolve, reject) => {
+      let attempts = 0;
+      const maxAttempts = 10;
+      
       const checkTimestamp = () => {
-        const timestamp = player.get("serverTimestamp");
-        if (timestamp !== undefined) {
-          console.log("Received server timestamp:", timestamp);
+        attempts++;
+        const timestamp = player.stage.get("serverTimestamp");
+        console.log(`[Player ${player.id}] Check attempt ${attempts}: timestamp=${timestamp}`);
+        
+        if (timestamp) {
           resolve(timestamp);
+        } else if (attempts >= maxAttempts) {
+          reject(new Error(`Failed to get timestamp after ${maxAttempts} attempts`));
         } else {
-          setTimeout(checkTimestamp, 50);
+          setTimeout(checkTimestamp, 100);
         }
       };
+      
       checkTimestamp();
     });
   }
-
+ 
   async function handleSendWord() {
     if (currentWord.trim() === "" || !isPlayerTurn) return;
   
-    const clientStartTime = Date.now();
-    console.log(`Word submission initiated at client time: ${clientStartTime}`);
-
-    const timestamp = await getServerTimestamp();
-    const serverStartTime = stage.get("startTime") || stage.get("serverStartTime");
-    const clientEndTime = Date.now();
-
-    console.log(`Word submission details:
-      Word: ${currentWord.trim()}
-      Request start time: ${clientStartTime}
-      Request end time: ${clientEndTime}
-      Request duration: ${clientEndTime - clientStartTime}ms
-      Server timestamp: ${timestamp}
-      Server start time: ${serverStartTime}
-      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
-
-    if (serverStartTime && timestamp) {
+    try {
+      console.log(`[Player ${player.id}] Starting word submission`);
+      const timestamp = await getServerTimestamp();
+      
+      if (!timestamp) {
+        throw new Error("No timestamp received");
+      }
+  
+      console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
+      
+      const serverStartTime = stage.get("serverStartTime");
+      if (!serverStartTime) {
+        throw new Error("No server start time available");
+      }
+  
       const relativeTimestamp = timestamp - serverStartTime;
+      if (relativeTimestamp < 0) {
+        throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
+      }
+  
+      // Only proceed if we have valid timestamps
       const words = round.get("words") || [];
       const updatedWords = [...words, { 
         text: currentWord.trim(), 
         player: player.id, 
         timestamp: relativeTimestamp 
       }];
-      round.set("words", updatedWords);
+  
+      await round.set("words", updatedWords);
       setCurrentWord("");
-    
-      // Switch turns
       round.set("currentTurnPlayerId", otherPlayer.id);
-
+      
+      console.log(`[Player ${player.id}] Word submission complete:`, {
+        word: currentWord.trim(),
+        timestamp,
+        serverStartTime,
+        relativeTimestamp
+      });
       console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
-    } else {
-      console.error("Invalid timestamp or start time", { timestamp, serverStartTime });
+    } catch (error) {
+      console.error(`[Player ${player.id}] Word submission failed:`, error);
     }
   }
+
 
   function handleKeyDown(event) {
     if (event.key === "Enter") {

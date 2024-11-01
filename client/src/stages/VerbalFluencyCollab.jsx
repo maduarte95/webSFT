@@ -311,73 +311,152 @@ export function VerbalFluencyCollab() {
     }
   }, [player.stage.get("apiResponse")]);
 
-  async function getServerTimestamp() {
-    console.log("Requesting server timestamp");
-    player.set("requestTimestamp", true);
+  // async function getServerTimestamp() {
+  //   console.log("Requesting server timestamp for stage", stage.get("name"));
+  //   player.set("requestTimestamp", true);
     
-    return new Promise((resolve) => {
-      const checkTimestamp = () => {
-        const timestamp = player.get("serverTimestamp");
-        if (timestamp !== undefined) {
-          console.log("Received server timestamp:", timestamp);
-          player.set("requestTimestamp", false);
-          resolve(timestamp);
-        } else {
-          setTimeout(checkTimestamp, 50);
-        }
-      };
-      checkTimestamp();
-    });
-  }
+  //   return new Promise((resolve) => {
+  //     const checkTimestamp = () => {
+  //       const timestamp = player.stage.get("serverTimestamp");
+  //       if (timestamp !== undefined) {
+  //         console.log("Received server timestamp:", timestamp);
+  //         player.set("requestTimestamp", false);
+  //         resolve(timestamp);
+  //       } else {
+  //         setTimeout(checkTimestamp, 50);
+  //       }
+  //     };
+  //     checkTimestamp();
+  //   });
+  // }
+
+// In VerbalFluencyCollab.jsx - Enhance getServerTimestamp
+
+//previous working more or less
+// async function getServerTimestamp() {
+//   console.log(`[Timestamp Debug] Requesting server timestamp for stage ${stage.get("name")}`);
+//   console.log(`[Timestamp Debug] Current cached timestamp: ${player.stage.get("serverTimestamp")}`);
+//   console.log(`[Timestamp Debug] Setting requestTimestamp flag to true`);
+//   player.set("requestTimestamp", true);
+  
+//   return new Promise((resolve) => {
+//     const checkTimestamp = () => {
+//       const timestamp = player.stage.get("serverTimestamp");
+//       if (timestamp !== undefined) {
+//         console.log(`[Timestamp Debug] Received timestamp: ${timestamp}`);
+//         console.log(`[Timestamp Debug] Time since stage start: ${timestamp - serverStartTime}ms`);
+//         player.set("requestTimestamp", false);
+//         resolve(timestamp);
+//       } else {
+//         console.log(`[Timestamp Debug] Waiting for timestamp...`);
+//         setTimeout(checkTimestamp, 50);
+//       }
+//     };
+//     checkTimestamp();
+//   });
+// }
+
+async function getServerTimestamp() {
+  console.log(`[Player ${player.id}] Requesting server timestamp for stage ${stage.get("name")}`);
+  
+  // Clear existing timestamp
+  await player.stage.set("serverTimestamp", undefined);
+  console.log(`[Player ${player.id}] Cleared existing timestamp`);
+  
+  // Set request flag
+  await player.set("requestTimestamp", true);
+  console.log(`[Player ${player.id}] Set request flag`);
+
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const checkTimestamp = () => {
+      attempts++;
+      const timestamp = player.stage.get("serverTimestamp");
+      console.log(`[Player ${player.id}] Check attempt ${attempts}: timestamp=${timestamp}`);
+      
+      if (timestamp) {
+        resolve(timestamp);
+      } else if (attempts >= maxAttempts) {
+        reject(new Error(`Failed to get timestamp after ${maxAttempts} attempts`));
+      } else {
+        setTimeout(checkTimestamp, 100);
+      }
+    };
+    
+    checkTimestamp();
+  });
+}
 
   async function handleSendWord() {
     if (currentWord.trim() === "" || isWaitingForAI) return;
   
-    const clientStartTime = Date.now();
-    console.log(`Word submission initiated at client time: ${clientStartTime}`);
+    try {
+      console.log(`[Player ${player.id}] Starting word submission`);
+      const timestamp = await getServerTimestamp();
+      
+      if (!timestamp) {
+        throw new Error("No timestamp received");
+      }
   
-    const timestamp = await getServerTimestamp();
-    const clientEndTime = Date.now();
+      console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
+      
+      if (!serverStartTime) {
+        throw new Error("No server start time available");
+      }
   
-    console.log(`Word submission details:
-      Word: ${currentWord.trim()}
-      Request start time: ${clientStartTime}
-      Request end time: ${clientEndTime}
-      Request duration: ${clientEndTime - clientStartTime}ms
-      Server timestamp: ${timestamp}
-      Server start time: ${serverStartTime}
-      Elapsed time since stage start: ${timestamp - serverStartTime}ms`);
+      const relativeTimestamp = timestamp - serverStartTime;
+      if (relativeTimestamp < 0) {
+        throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
+      }
   
-    const words = player.round.get("words") || [];
-    const updatedWords = [...words, { 
-      text: currentWord.trim(), 
-      source: 'user', 
-      timestamp: timestamp - serverStartTime
-    }];
-    
-    player.round.set("words", updatedWords);
-    player.round.set("lastWord", currentWord.trim());
-    setLastWord(`You: ${currentWord.trim()}`);
-    setCurrentWord("");
-
-    console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
-    await triggerAIResponse();
+      // Only proceed if we have valid timestamps
+      const words = player.round.get("words") || [];
+      const updatedWords = [...words, { 
+        text: currentWord.trim(), 
+        source: 'user', 
+        timestamp: relativeTimestamp 
+      }];
+  
+      await player.round.set("words", updatedWords);
+      await player.round.set("lastWord", currentWord.trim());
+      setLastWord(`You: ${currentWord.trim()}`);
+      setCurrentWord("");
+      
+      console.log(`[Player ${player.id}] Word submission complete:`, {
+        word: currentWord.trim(),
+        timestamp,
+        serverStartTime,
+        relativeTimestamp
+      });
+      
+      console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+      await triggerAIResponse();
+    } catch (error) {
+      console.error(`[Player ${player.id}] Word submission failed:`, error);
+      setIsWaitingForAI(false); // Reset waiting state on error
+    }
   }
 
   async function triggerAIResponse() {
-    console.log("AI response request initiated");
-    setIsWaitingForAI(true);
-
-    // Still save request timestamp for tracking purposes
-    const timestamp = await getServerTimestamp();
-    const requestTimestamps = player.round.get("requestTimestamps") || [];
-    const updatedTimestamps = [...requestTimestamps, timestamp - serverStartTime];
-    player.round.set("requestTimestamps", updatedTimestamps);
-    
     try {
+      console.log(`[Player ${player.id}] AI response request initiated`);
+      setIsWaitingForAI(true);
+
+      // Still save request timestamp for tracking purposes
+      const timestamp = await getServerTimestamp();
+      if (!timestamp) {
+        throw new Error("Failed to get timestamp for AI request");
+      }
+  
+      const requestTimestamps = player.round.get("requestTimestamps") || [];
+      const updatedTimestamps = [...requestTimestamps, timestamp - serverStartTime];
+      await player.round.set("requestTimestamps", updatedTimestamps);
       await player.set("apiTrigger", true);
+      
     } catch (error) {
-      console.error("Failed to trigger API call:", error);
+      console.error(`[Player ${player.id}] Failed to trigger AI response:`, error);
       setIsWaitingForAI(false);
     }
   }
@@ -392,6 +471,8 @@ export function VerbalFluencyCollab() {
       timestamp: response.timestamp - serverStartTime,
       apiLatency: response.apiLatency
     }];
+
+    console.log("AI response timestamp:", response.timestamp, "setting words");
     
     player.round.set("words", updatedWords);
     setLastWord(`Partner: ${response.text}`);

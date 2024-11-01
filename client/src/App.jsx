@@ -121,9 +121,9 @@ export default function App() {
         <EmpiricaMenu position="bottom-left" />
         <div className="h-full overflow-auto">
           <EmpiricaContext
-            consent={MyConsent}
-            introSteps={introSteps}
-            exitSteps={exitSteps}
+            // consent={MyConsent}
+            // introSteps={introSteps}
+            // exitSteps={exitSteps}
           >
             <Game />
           </EmpiricaContext>
