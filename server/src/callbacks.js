@@ -147,6 +147,20 @@ function setupRounds(game, treatment) {
   game.set("taskType", taskType);
 }
 
+function gaussianRandom(mean, standardDeviation, min, max) {
+  // Generate two independent uniform random numbers
+  const u = Math.random();
+  const v = Math.random();
+  
+  // Transform to standard normal distribution using Box-Muller
+  const normal = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  
+  // Transform to desired mean and standard deviation
+  let result = normal * standardDeviation + mean;
+  
+  // Clamp the result between min and max
+  return Math.min(Math.max(result, min), max);
+}
 
 Empirica.onGameStart(({ game }) => {
   const treatment = game.get("treatment");
@@ -544,8 +558,17 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
       const llmResponse = await llm.generate(userPrompt);
 
-      // Add artificial delay of 1.5s
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // In your API trigger function:
+      const meanDelay = 1500;  // 1.5 seconds
+      const stdDev = 300;      // 0.3 seconds
+      const minDelay = 0;      // Minimum delay in milliseconds
+      const maxDelay = 8000;   // Maximum delay (5 seconds) in milliseconds
+
+      const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+      // // Add artificial delay of 1.5s
+      // await new Promise(resolve => setTimeout(resolve, 1500));
 
       const responseTime = Date.now();
       const apiLatency = responseTime - requestTime;

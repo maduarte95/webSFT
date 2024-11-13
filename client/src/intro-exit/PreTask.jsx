@@ -19,14 +19,14 @@ export function PreTask({ next }) {
     }
 
     // Check if the age is within the limit
-    if (age > 100) {
-      setError("Age must be 100 or below.");
+    if (age < 18 || age > 100) {
+      setError("Age must be between 18 and 100.");
       return;
     }
   
     // Check if the participant meets the requirements ## change to not native!
     if (isNativeEnglish === false) { 
-      setError("This study requires native English speakers. Thank you for your interest.");
+      setError("This study requires native English speakers. Thank you for your interest. Please submit the following code on Prolific: CTNT70UV");
       return;
     }
 
@@ -113,7 +113,8 @@ export function PreTask({ next }) {
             className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
           >
             <option value="">Select...</option>
-            <option value="highSchool">High School</option>
+            <option value="none">None</option>
+            <option value="highSchool">High School/Secondary Education</option>
             <option value="bachelor">Bachelor's Degree</option>
             <option value="master">Master's Degree</option>
             <option value="phd">Ph.D. or Equivalent</option>

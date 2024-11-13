@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { usePlayer } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { Alert } from "../components/Alert";
 
 const SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog";
 const TIME_LIMIT = 15; // time limit
@@ -12,6 +13,7 @@ export function TypingSpeedTest({ next }) {
   const [isFinished, setIsFinished] = useState(false);
   const [timeLeft, setTimeLeft] = useState(TIME_LIMIT);
   const player = usePlayer();
+  const [hasFailed, setHasFailed] = useState(false);
 
   useEffect(() => {
     if (inputText.length === 1 && !startTime) {
@@ -29,6 +31,7 @@ export function TypingSpeedTest({ next }) {
         if (remaining <= 0) {
           clearInterval(timer);
           setIsFinished(true);
+          setHasFailed(true);
           calculateSpeed();
         }
       }, 1000);
@@ -43,6 +46,7 @@ export function TypingSpeedTest({ next }) {
       if (e.target.value === SAMPLE_TEXT) {
         setEndTime(Date.now());
         setIsFinished(true);
+        setHasFailed(false);
         calculateSpeed();
       }
     }
@@ -59,18 +63,30 @@ export function TypingSpeedTest({ next }) {
     player.set("typingSpeedWPM", wpm);
     player.set("typingSpeedCPM", cpm);
     player.set("typingSpeedTime", timeInSeconds);
+
+    if (hasFailed) {
+      player.set("failed_typing_test", true);
+    }
+
   };
 
+  // const handleContinue = () => {
+  //   const wpm = player.get("typingSpeedWPM");
+  //   if (wpm && wpm >= 30) { // Set your desired WPM threshold here
+  //     next();
+  //   } else {
+  //     player.set("failed_typing_test", true);
+  //     // Redirect to Prolific's completion URL
+  //     alert("Thank you for your participation. Unfortunately, you do not meet the typing speed requirement for this study.");
+  //   }
+  // };
+
   const handleContinue = () => {
-    const wpm = player.get("typingSpeedWPM");
-    if (wpm && wpm >= 30) { // Set your desired WPM threshold here
+    if (!hasFailed) {
       next();
-    } else {
-      player.set("failed_typing_test", true);
-      // Redirect to Prolific's completion URL
-      alert("Thank you for your participation. Unfortunately, you do not meet the typing speed requirement for this study.");
     }
   };
+
 
   // return (
   //   <div className="flex flex-col items-center justify-center h-full">
@@ -171,7 +187,7 @@ export function TypingSpeedTest({ next }) {
         onPaste={(e) => e.preventDefault()}
       />
       
-      {isFinished && (
+      {/* {isFinished && (
         <div className="mb-4">
           <p>Your typing speed:</p>
           <p>{player.get("typingSpeedWPM")} WPM</p>
@@ -181,6 +197,29 @@ export function TypingSpeedTest({ next }) {
       
       {isFinished && (
         <Button handleClick={handleContinue}>Continue</Button>
+      )} */}
+
+    {isFinished && hasFailed && (
+        <div className="w-full max-w-lg">
+          <Alert title="Study Participation">
+            <p className="mb-2">
+              Thank you for your interest in our study. Unfortunately, you did not complete the typing test within the required time limit.
+            </p>
+            <p className="font-semibold">
+              Please submit the following code on Prolific: CTNT70UV
+            </p>
+          </Alert>
+          <p className="mt-4 text-sm text-gray-600">
+            Your typing speed: {player.get("typingSpeedWPM")} WPM
+          </p>
+        </div>
+      )}
+      
+      {isFinished && !hasFailed && (
+        <div>
+          <p className="mb-4">Your typing speed: {player.get("typingSpeedWPM")} WPM</p>
+          <Button handleClick={handleContinue}>Continue</Button>
+        </div>
       )}
     </div>
   );

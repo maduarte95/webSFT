@@ -87,23 +87,45 @@ import { TypingSpeedTest } from "./intro-exit/TypingSpeedTest";
 import { IntroductionInterleaved } from "./intro-exit/IntroductionInterleaved";
 import { IntroductionSelfinitiated } from "./intro-exit/IntroductionSelfinitiated";
 import { FinalScoreSummary } from "./intro-exit/FinalScoreSummary";
+import { MyPlayerForm } from "./intro-exit/MyPlayerForm";
+import { FailedGame } from "./intro-exit/FailedGame";
+import { MyNoGames } from "./intro-exit/MyNoGames";
 
 export default function App() {
   const urlParams = new URLSearchParams(window.location.search);
-  const playerKey = urlParams.get("participantKey") || "";
+
+  // Get Prolific parameters
+  const prolificPID = urlParams.get("PROLIFIC_PID");
+  const studyID = urlParams.get("STUDY_ID");
+  const sessionID = urlParams.get("SESSION_ID");
+
+  const playerKey = prolificPID || "";
   const { protocol, host } = window.location;
   const url = `${protocol}//${host}/query`;
 
   function introSteps({ game, player }) {
     const treatment = game.get("treatment");
     const taskType = treatment.taskType;
+
+    player.set("prolificPID", prolificPID);
+    player.set("studyID", studyID);
+    player.set("sessionID", sessionID);
+
     return [
       PreTask, TypingSpeedTest,
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
   }
 
+  // function exitSteps({ game, player }) {
+  //   return [PostSurvey, PostQuestions, FinalScoreSummary];
+  // }
+
   function exitSteps({ game, player }) {
+    // Check if the game failed to start (not ended) or if player failed typing test
+    if (player.get("ended") === "no more games" || player.get("ended") === "game failed" || player.get("failed_typing_test")) {
+      return [FailedGame];
+    }
     return [PostSurvey, PostQuestions, FinalScoreSummary];
   }
 
@@ -121,9 +143,11 @@ export default function App() {
         <EmpiricaMenu position="bottom-left" />
         <div className="h-full overflow-auto">
           <EmpiricaContext
-            // consent={MyConsent}
-            // introSteps={introSteps}
-            // exitSteps={exitSteps}
+            noGames={MyNoGames}
+            playerCreate={MyPlayerForm}
+            consent={MyConsent}
+            introSteps={introSteps}
+            exitSteps={exitSteps}
           >
             <Game />
           </EmpiricaContext>

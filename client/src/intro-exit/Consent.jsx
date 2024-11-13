@@ -12,19 +12,19 @@ export function MyConsent({ onConsent }) {
       <p style={{ marginBottom: '1em' }}>Welcome,</p>
 
       <p style={{ marginBottom: '1em' }}>
-        We wish to invite you to participate in a study exploring the mechanisms of creative collaboration with artificial intelligence (AI) systems. Your participation involves performing a computer-based task in which you and a partner will be asked to name items from different categories within a time limit. You may collaborate with a human partner or a computer system.
+        We wish to invite you to participate in a study exploring the mechanisms of creative collaboration in a semantic fluency task. Your participation involves performing a computer-based task in which you and a partner will be asked to name items from different categories within a time limit.
       </p>
 
-      <p style={{ marginBottom: '1em' }}>
+      {/* <p style={{ marginBottom: '1em' }}>
         By participating in this study, you will be contributing to the improvement of human-AI collaboration for creative tasks.
-      </p>
+      </p> */}
 
       <p style={{ marginBottom: '1em' }}>Important Information:</p>
       <div style={{ marginLeft: '1em', marginBottom: '1em' }}>
         • Your participation is completely voluntary and you may choose to withdraw at any time<br/>
         • No significant risks or discomforts are expected with this experiment<br/>
         • All data will be anonymized and stored safely at our research institution<br/>
-        • You can withdraw your data at any time by contacting [contact person] and mentioning your participant code
+        • You can withdraw your data at any time by contacting the researcher and mentioning your Prolific code
       </div>
 
       <p style={{ marginBottom: '1em' }}>By clicking "I Agree" below, you confirm that:</p>

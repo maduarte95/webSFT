@@ -1,0 +1,12 @@
+{
+    "defaultModel": "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
+    "apiParameters": {
+      "max_tokens": 512,
+      "temperature": 0.7,
+      "top_p": 0.7,
+      "top_k": 50,
+      "repetition_penalty": 1,
+      "stream_tokens": false
+    },
+    "apiKey": "af1b868cbda43cca4b2ebe64496161ad6bbbc2466dd992e9de4be6b327928c43"
+  }
