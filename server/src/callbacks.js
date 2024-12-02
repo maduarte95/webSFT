@@ -560,9 +560,9 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
       // In your API trigger function:
       const meanDelay = 1500;  // 1.5 seconds
-      const stdDev = 300;      // 0.3 seconds
-      const minDelay = 0;      // Minimum delay in milliseconds
-      const maxDelay = 8000;   // Maximum delay (5 seconds) in milliseconds
+      const stdDev = 500;      // 0.5 seconds
+      const minDelay = 500;      // Minimum delay in milliseconds
+      const maxDelay = 10000;   // Maximum delay in milliseconds
 
       const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
       await new Promise(resolve => setTimeout(resolve, delay));

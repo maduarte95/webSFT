@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+// TODO FIX THE RACE CONDITIONS
 
 export function HHInterleaved() {
   const [currentWord, setCurrentWord] = useState("");
@@ -28,6 +29,27 @@ export function HHInterleaved() {
       inputRef.current.focus();
     }
   }, [isPlayerTurn]);
+
+  //logging - Track component lifecycle
+  useEffect(() => {
+    console.log('HHInterleaved mounted:', {
+      currentTurnPlayerId: round.get("currentTurnPlayerId"),
+      myId: player.id,
+      words: round.get("words"),
+      timestamp: Date.now()
+    });
+  }, []);
+
+    
+  // logging - Track changes to currentTurnPlayerId
+  useEffect(() => {
+    console.log(`[Player ${player.id}] Turn state changed:`, {
+      currentTurnPlayerId: round.get("currentTurnPlayerId"),
+      isPlayerTurn: round.get("currentTurnPlayerId") === player.id,
+      wordCount: (round.get("words") || []).length,
+      timestamp: Date.now()
+    });
+  }, [round.get("currentTurnPlayerId")]);
   
 
   useEffect(() => {
@@ -204,6 +226,116 @@ export function HHInterleaved() {
     });
   }
  
+  //with extra logging 
+  // async function handleSendWord() {
+  //   // if (currentWord.trim() === "" || !isPlayerTurn) return;
+
+  //   // Get the current state BEFORE we start
+  //   const currentTurn = round.get("currentTurnPlayerId");
+  //   const currentWords = round.get("words") || []; //for what?
+
+  //   //add lock
+  //   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  //     // Verify it's still our turn
+  //   if (currentTurn !== player.id) return;
+
+  //   console.log('handleSendWord called:', {
+  //     currentWord,
+  //     isPlayerTurn,
+  //     currentTurnPlayerId: round.get("currentTurnPlayerId"),
+  //     myId: player.id,
+  //     timestamp: Date.now()
+  //   });
+
+  //   if (currentWord.trim() === "" || isSubmitting || !isPlayerTurn) {
+  //     console.log('handleSendWord rejected:', {
+  //       emptyWord: currentWord.trim() === "",
+  //       isPlayerTurn,
+  //       currentTurnPlayerId: round.get("currentTurnPlayerId")
+  //     });
+  //     return;
+  //   }
+  
+  //   try {
+  //     // console.log(`[Player ${player.id}] Starting word submission`);
+  //     setIsSubmitting(true);
+  //     console.log(`[Player ${player.id}] Starting word submission:`, {
+  //       currentTurnPlayerId: round.get("currentTurnPlayerId"),
+  //       isPlayerTurn,
+  //       timestamp: Date.now()
+  //     });
+
+  //     const timestamp = await getServerTimestamp();
+
+  //     // Re-verify turn hasn't changed during timestamp request
+  //     if (round.get("currentTurnPlayerId") !== currentTurn) return;
+
+  //     // Log after getting timestamp, before updating words
+  //     console.log(`[Player ${player.id}] Got timestamp, updating words:`, {
+  //       currentTurnPlayerId: round.get("currentTurnPlayerId"),
+  //       isPlayerTurn,
+  //       timestamp: Date.now()
+  //     });
+      
+  //     if (!timestamp) {
+  //       throw new Error("No timestamp received");
+  //     }
+  
+  //     console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
+      
+  //     const serverStartTime = stage.get("serverStartTime");
+  //     if (!serverStartTime) {
+  //       throw new Error("No server start time available");
+  //     }
+  
+  //     const relativeTimestamp = timestamp - serverStartTime;
+  //     if (relativeTimestamp < 0) {
+  //       throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
+  //     }
+  
+  //     // Only proceed if we have valid timestamps
+  //     const words = round.get("words") || [];
+  //     const updatedWords = [...words, { 
+  //       text: currentWord.trim(), 
+  //       player: player.id, 
+  //       timestamp: relativeTimestamp 
+  //     }];
+  
+  //     await round.set("words", updatedWords);
+  //     setCurrentWord("");
+
+  //     // Log before changing turn
+  //     console.log(`[Player ${player.id}] Changing turn:`, {
+  //       fromPlayer: player.id,
+  //       toPlayer: otherPlayer.id,
+  //       currentTurnPlayerId: round.get("currentTurnPlayerId"),
+  //       timestamp: Date.now()
+  //     });
+
+  //     round.set("currentTurnPlayerId", otherPlayer.id);
+
+  //     // Log after changing turn
+  //     console.log(`[Player ${player.id}] Turn changed:`, {
+  //       newTurnPlayerId: round.get("currentTurnPlayerId"),
+  //       wordCount: updatedWords.length,
+  //       timestamp: Date.now()
+  //     });
+  //     //end of new logs
+      
+  //     console.log(`[Player ${player.id}] Word submission complete:`, {
+  //       word: currentWord.trim(),
+  //       timestamp,
+  //       serverStartTime,
+  //       relativeTimestamp
+  //     });
+  //     console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+  //   } catch (error) {
+  //     console.error(`[Player ${player.id}] Word submission failed:`, error);
+  //   }
+  // }
+
+  //issue - multiple successive turns are happening
   async function handleSendWord() {
     if (currentWord.trim() === "" || !isPlayerTurn) return;
   

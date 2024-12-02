@@ -275,6 +275,11 @@ export function VerbalFluencyCollab() {
   const category = player.round.get("category");
   const inputRef = useRef(null);
 
+  // NEW: Track pending API responses to prevent lost responses
+  const pendingResponseRef = useRef(false);
+  // NEW: Synchronous submission lock
+  const isSubmittingRef = useRef(false);
+
   // Wait for serverStartTime before rendering interactive elements
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
@@ -306,7 +311,7 @@ export function VerbalFluencyCollab() {
 
   useEffect(() => {
     const response = player.stage.get("apiResponse");
-    if (response && isWaitingForAI) {
+    if (response && (isWaitingForAI || pendingResponseRef.current)) {
       handleAIResponse(response);
     }
   }, [player.stage.get("apiResponse")]);
@@ -369,7 +374,7 @@ async function getServerTimestamp() {
 
   return new Promise((resolve, reject) => {
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20;
     
     const checkTimestamp = () => {
       attempts++;
@@ -390,12 +395,37 @@ async function getServerTimestamp() {
 }
 
   async function handleSendWord() {
-    if (currentWord.trim() === "" || isWaitingForAI) return;
+
+    // Synchronous checks with ref
+    if (currentWord.trim() === "" || isWaitingForAI || isSubmittingRef.current) {
+      return;
+    }
+    
+    // Immediately lock submissions and capture word
+    isSubmittingRef.current = true;
+    const wordToSubmit = currentWord.trim();
+    setCurrentWord(""); // Clear input immediately
   
     try {
+
+      // Check for duplicates before setting waiting state
+      const words = player.round.get("words") || [];
+      const isDuplicate = words.some(w =>
+        w.text.toLowerCase() === wordToSubmit.toLowerCase() &&
+        w.source === 'user'
+      );
+
+      if (isDuplicate) {
+        console.log(`Duplicate word rejected: ${wordToSubmit}`);
+        setLastWord(`"${wordToSubmit}" was already used!`);
+        return;  // Exit early without setting isWaitingForAI
+      }
+
+      // Set waiting state if no duplicates
+      setIsWaitingForAI(true);
       console.log(`[Player ${player.id}] Starting word submission`);
+
       const timestamp = await getServerTimestamp();
-      
       if (!timestamp) {
         throw new Error("No timestamp received");
       }
@@ -405,27 +435,24 @@ async function getServerTimestamp() {
       if (!serverStartTime) {
         throw new Error("No server start time available");
       }
-  
+
       const relativeTimestamp = timestamp - serverStartTime;
       if (relativeTimestamp < 0) {
         throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
       }
   
-      // Only proceed if we have valid timestamps
-      const words = player.round.get("words") || [];
-      const updatedWords = [...words, { 
-        text: currentWord.trim(), 
-        source: 'user', 
-        timestamp: relativeTimestamp 
+      const updatedWords = [...words, {
+        text: wordToSubmit,
+        source: 'user',
+        timestamp: relativeTimestamp
       }];
-  
+ 
       await player.round.set("words", updatedWords);
-      await player.round.set("lastWord", currentWord.trim());
-      setLastWord(`You: ${currentWord.trim()}`);
-      setCurrentWord("");
-      
+      await player.round.set("lastWord", wordToSubmit);  // Changed from currentWord.trim()
+      setLastWord(`You: ${wordToSubmit}`);  // Changed from currentWord.trim()
+
       console.log(`[Player ${player.id}] Word submission complete:`, {
-        word: currentWord.trim(),
+        word: wordToSubmit,  // Changed from currentWord.trim()
         timestamp,
         serverStartTime,
         relativeTimestamp
@@ -433,57 +460,81 @@ async function getServerTimestamp() {
       
       console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
       await triggerAIResponse();
+    
     } catch (error) {
       console.error(`[Player ${player.id}] Word submission failed:`, error);
       setIsWaitingForAI(false); // Reset waiting state on error
+    } finally {
+      isSubmittingRef.current = false;
     }
   }
+
 
   async function triggerAIResponse() {
     try {
-      console.log(`[Player ${player.id}] AI response request initiated`);
-      setIsWaitingForAI(true);
+        if (player.get("apiTrigger")) {
+            console.log("API call already in progress");
+            return;
+        }
 
-      // Still save request timestamp for tracking purposes
-      const timestamp = await getServerTimestamp();
-      if (!timestamp) {
-        throw new Error("Failed to get timestamp for AI request");
-      }
-  
-      const requestTimestamps = player.round.get("requestTimestamps") || [];
-      const updatedTimestamps = [...requestTimestamps, timestamp - serverStartTime];
-      await player.round.set("requestTimestamps", updatedTimestamps);
-      await player.set("apiTrigger", true);
-      
+        // Get and validate timestamp before any state changes
+        const timestamp = await getServerTimestamp();
+        if (!timestamp) {
+            throw new Error("Failed to get timestamp for AI request");
+        }
+
+        const relativeTimestamp = timestamp - serverStartTime;
+        if (relativeTimestamp < 0) {
+            throw new Error("Invalid relative timestamp");
+        }
+
+        // Track that we're expecting a response
+        pendingResponseRef.current = true;
+
+        // Record request timestamp
+        const requestTimestamps = player.round.get("requestTimestamps") || [];
+        const updatedTimestamps = [...requestTimestamps, relativeTimestamp];
+
+        // Atomic updates
+        await Promise.all([
+            player.round.set("requestTimestamps", updatedTimestamps),
+            player.set("apiTrigger", true)
+        ]);
+
     } catch (error) {
-      console.error(`[Player ${player.id}] Failed to trigger AI response:`, error);
-      setIsWaitingForAI(false);
+        console.error(`[Player ${player.id}] Failed to trigger AI response:`, error);
+        // Clean up all states if API trigger fails
+        setIsWaitingForAI(false);
+        pendingResponseRef.current = false;
+        await player.set("apiTrigger", false);
     }
-  }
+}
 
   async function handleAIResponse(response) {
     console.log("Handling AI response:", response);
+    pendingResponseRef.current = false;
 
     const words = player.round.get("words") || [];
     const updatedWords = [...words, { 
       text: response.text, 
       source: 'ai', 
-      timestamp: response.timestamp - serverStartTime,
+      timestamp: response.timestamp - serverStartTime, //timestamp comes from server
       apiLatency: response.apiLatency
     }];
 
     console.log("AI response timestamp:", response.timestamp, "setting words");
     
-    player.round.set("words", updatedWords);
+    await player.round.set("words", updatedWords);
     setLastWord(`Partner: ${response.text}`);
     setIsWaitingForAI(false);
-    player.stage.set("apiResponse", null);
+    await player.stage.set("apiResponse", null);
 
     console.log("AI response processed. Updated words:", updatedWords);
   }
 
   function handleKeyDown(event) {
-    if (event.key === "Enter") {
+    if (event.key === "Enter" && !event.repeat) {
+      event.preventDefault();
       handleSendWord();
     }
   }
@@ -503,12 +554,12 @@ async function getServerTimestamp() {
             onKeyDown={handleKeyDown}
             placeholder="Enter an item..."
             className="flex-grow p-2 border border-gray-300 rounded mr-2"
-            disabled={isWaitingForAI}
+            disabled={isWaitingForAI || isSubmittingRef.current}
             autoFocus
           />
           <Button 
             handleClick={handleSendWord} 
-            disabled={isWaitingForAI || currentWord.trim() === ""}
+            disabled={isWaitingForAI || isSubmittingRef.current || currentWord.trim() === ""}
           >
             Send
           </Button>
