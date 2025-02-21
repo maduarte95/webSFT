@@ -518,11 +518,18 @@ async function getServerTimestamp() {
     const updatedWords = [...words, { 
       text: response.text, 
       source: 'ai', 
-      timestamp: response.timestamp - serverStartTime, //timestamp comes from server
+      timestamp: response.timestamp - serverStartTime, //timestamp comes from server - change this so it's the same as user timestamp ? 
       apiLatency: response.apiLatency
     }];
 
     console.log("AI response timestamp:", response.timestamp, "setting words");
+
+    //DEBUG FEB 19 - log the response timestamp obtained the same way as the user timestamp (with get server timestamp function) to see if they're the same
+    const alternativeTimestamp = await getServerTimestamp();
+    console.log("Alternative client-side absolute timestamp:", alternativeTimestamp);
+    const alternativeLatency = alternativeTimestamp - serverStartTime;
+    console.log("Alternative client-side stage timestamp:", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
+    //END DEBUG
     
     await player.round.set("words", updatedWords);
     setLastWord(`Partner: ${response.text}`);
@@ -573,3 +580,11 @@ async function getServerTimestamp() {
     </div>
   );
 }
+
+
+//ISSUES: 
+//1. DOUBLE-CLICKING THE SEND BUTTON STILL SENDS MULTIPLE REQUESTS  - did not replicate! only happened once......server failure?
+//2. THE LLM RESPONSE GETS STUCK FOR *BOTH PLAYERS* AFTER THIS HAPPENS
+
+//"[Timestamp Service] New request from player..." log is showing up 4 times per button click; "current timestamp" alternates between null and a timestamp; sets 4 increasing timestamps - why? 
+//It was because the flag was being reset to false and requesting a timestamp again! --fixed in callbacks.js; 

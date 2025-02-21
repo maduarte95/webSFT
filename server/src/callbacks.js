@@ -659,6 +659,12 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   console.log(`[Timestamp Service] Current stage: ${player.currentStage.get("name")}`);
   console.log(`[Timestamp Service] Current timestamp: ${player.stage.get("serverTimestamp")}`);
 
+  //only update timestamp if requestTimestamp = true!
+  if (!player.get("requestTimestamp")) {
+    console.log(`[Timestamp Service] Request flag is false for player ${player.id}. Skipping update.`);
+    return;
+  }
+  
   const timestamp = Date.now();
   
   await player.stage.set("serverTimestamp", timestamp);
