@@ -17,7 +17,7 @@ const categoryMap = {
 // One shared client
 const client = new SFTClient();
 
-// Exact agent name mapping
+// Exact agent name mapping - has to correspond to agent names defined in SFTplayground yaml files
 const AGENT_NAMES = {
   'adjacent': {
       'animals': 'adjacentAnimals',
@@ -37,7 +37,7 @@ function getAgentName(cueType, category) {
   return AGENT_NAMES[cueType][category];
 }
 
-// Create a nested map to store LLM instances for each player and round
+/* // Create a nested map to store LLM instances for each player and round
 const playerRoundLLMs = new Map();
 
 
@@ -99,7 +99,7 @@ function getOrCreateLLM(playerId, roundName, stageName, treatment, category) {
   
   return playerRoundLLMs.get(key);
 }
-
+ */
 
 function setupRounds(game, treatment) {
   const { taskType, cueType, interOrder, selfOrder, categoryOrder } = treatment
@@ -315,7 +315,7 @@ Empirica.onStageStart(({ stage }) => {
   const treatment = game.get("treatment");
   console.log(`Stage ${stageName} started for game ${game.id}. Treatment:`, treatment);
 
-  const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
+  /* const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
 
   if (llmStages.includes(stageName)) {
     game.players.forEach(player => {
@@ -334,7 +334,7 @@ Empirica.onStageStart(({ stage }) => {
     });
   } else {
     console.log(`Stage ${stageName} does not require LLM creation.`);
-  }
+  } */
 });
 
 Empirica.onStageEnded(({ stage }) => {
@@ -393,7 +393,7 @@ Empirica.onGameEnded(({ game }) => {
   const taskCategories = game.get("taskCategory");
   console.log(`Task type: ${taskType}, taskIndices: ${taskIndices}, taskCategories: ${taskCategories}`);
 
-  // Find all LLM keys associated with this game's players
+/*   // Find all LLM keys associated with this game's players
   const keysToDelete = [];
   for (const [key, llm] of playerRoundLLMs.entries()) {
     game.players.forEach(player => {
@@ -408,10 +408,10 @@ Empirica.onGameEnded(({ game }) => {
   keysToDelete.forEach(key => {
     playerRoundLLMs.delete(key);
     console.log(`Deleted LLM for key: ${key}`);
-  });
+  }); */
 
   // Log the size of the LLM map after cleanup
-  console.log(`LLM map size after cleanup: ${playerRoundLLMs.size}`);
+  //console.log(`LLM map size after cleanup: ${playerRoundLLMs.size}`);
 
   game.players.forEach(player => {
     player.set("taskType", taskType);
@@ -505,7 +505,7 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       console.log(`Using agent: ${agentName} for category: ${category}, cueType: ${treatment.cueType}`);
       
       // Create session ID from game and round
-      const sessionId = `${player.currentGame.id}-${player.currentRound.get("name")}`;
+      const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
       
       const pastWords = player.round.get("words") || [];
       const lastWord = player.round.get("lastWord") || "";
@@ -519,7 +519,12 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
           player.id
       );
 
-      // Keep existing delay logic
+      // log actual latency
+      const actualresponseTime = Date.now();
+      const actualapiLatency = actualresponseTime - requestTime;
+      console.log("Response received; Latency before artificial delay: ", actualapiLatency);
+
+      // Add artificial delay
       const meanDelay = 1500;
       const stdDev = 500;
       const minDelay = 500;
@@ -535,7 +540,7 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
           apiLatency: responseTime - requestTime
       });
 
-      console.log(`API response processed for player ${player.id}:`, response);
+      console.log(`API response delayed, processed and set for player ${player.id}:`, response);
 
   } catch (error) {
       console.error(`API call failed for player ${player.id}:`, error);

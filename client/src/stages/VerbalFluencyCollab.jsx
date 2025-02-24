@@ -220,7 +220,7 @@ async function getServerTimestamp() {
     const alternativeTimestamp = await getServerTimestamp();
     console.log("Alternative client-side absolute timestamp:", alternativeTimestamp);
     const alternativeLatency = alternativeTimestamp - serverStartTime;
-    console.log("Alternative client-side stage timestamp:", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
+    console.log("Alternative client-side stage timestamp (latency):", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
     //END DEBUG
     
     await player.round.set("words", updatedWords);
