@@ -163,8 +163,8 @@ Empirica.onGameStart(({ game }) => {
   const treatment = game.get("treatment");
 
   //add LLM testing round - caution! will cause errors in category assignment
-  // const LLMTest= game.addRound({ name: "testRound" });
-  // LLMTest.addStage({ name: "LocalAPI", duration: 180 });
+  const LLMTest= game.addRound({ name: "testRound" });
+  LLMTest.addStage({ name: "LocalAPI", duration: 180 });
 
   setupRounds(game, treatment);
   console.log(`Game ${game.id} rounds set up for treatment:`, treatment);

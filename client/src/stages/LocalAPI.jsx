@@ -31,8 +31,8 @@ export function LocalAPI() {
           "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-          //model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
-          model: "meta-llama/Llama-3.3-70B-Instruct-Turbo-Free",
+          //model: "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo", meta-llama/Llama-3.3-70B-Instruct-Turbo, meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo-128K, meta-llama/Llama-3.3-70B-Instruct-Turbo-Free
+          model: "meta-llama/Llama-3.3-70B-Instruct-Turbo",
           messages: [
             { role: "system", content: "You are a helpful assistant." },
             { role: "user", content: "Cheesed to meet you!" }
