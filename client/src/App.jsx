@@ -111,13 +111,13 @@ export default function App() {
     player.set("studyID", studyID);
     player.set("sessionID", sessionID);
 
-    // return [
-    //   PreTask, TypingSpeedTest,
-    //   taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
-    // ];
     return [
+      PreTask, TypingSpeedTest,
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
+    // return [
+    //   taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
+    // ];
   }
 
   // function exitSteps({ game, player }) {
