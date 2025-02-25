@@ -111,11 +111,13 @@ export default function App() {
     player.set("studyID", studyID);
     player.set("sessionID", sessionID);
 
+    // Uncomment for intro steps
     // return [
     //   PreTask, TypingSpeedTest,
     //   taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     // ];
 
+    // Uncomment for no intro steps
     return [
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
