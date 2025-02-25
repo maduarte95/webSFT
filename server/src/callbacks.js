@@ -32,70 +32,6 @@ function getAgentName(cueType, category) {
   return AGENT_NAMES[cueType][category];
 }
 
-/* // Create a nested map to store LLM instances for each player and round
-const playerRoundLLMs = new Map();
-
-
-function getOrCreateLLM(playerId, roundName, stageName, treatment, category) {
-  const key = `${playerId}-${roundName}-${stageName}`;
-  console.log(`Checking LLM for key: ${key}. Treatment:`, treatment);
-  
-  const llmRequiredStages = ["VerbalFluencyCollab", "VerbalFluencyTask", "LocalAPI"];
-  
-  if (!llmRequiredStages.includes(stageName)) {
-    console.log(`LLM not required for stage: ${stageName}`);
-    return null;
-  }
-
-  if (!playerRoundLLMs.has(key)) {
-    let systemPrompt = "";
-
-    if (stageName === "VerbalFluencyCollab" || stageName === "VerbalFluencyTask") {
-      if (treatment && treatment.cueType === "adjacent") {
-        const promptPath = path.join(__dirname, '..', 'prompts', 'adjacent.txt');
-        // systemPrompt = readPromptFile(promptPath);
-        systemPrompt = prompts.adjacent;
-      } else if (treatment && treatment.cueType === "divergent") {
-        const promptPath = path.join(__dirname, '..', 'prompts', 'divergent.txt');
-        // systemPrompt = readPromptFile(promptPath);
-        systemPrompt = prompts.divergent;
-      } else if (treatment && treatment.cueType === "inferred") {
-        const promptPath = path.join(__dirname, '..', 'prompts', 'inferred.txt');
-        // systemPrompt = readPromptFile(promptPath);
-        systemPrompt = prompts.inferred;
-      }
-      
-      if (!systemPrompt) {
-        systemPrompt = `You are an assistant helping with a verbal fluency task about ${category}. Provide single-word ${category} names as responses. Do not repeat ${category} names that have already been mentioned.`;
-        console.warn(`Warning: Using default prompt for stage ${stageName}. Treatment: ${JSON.stringify(treatment)}`);
-      } else {
-        // Replace <category> placeholder with actual category
-        systemPrompt = systemPrompt.replace(/<category>/g, category);
-      }
-    } else if (stageName === "LocalAPI") {
-      console.log(`Creating LLM for LocalAPI stage without a specific system prompt.`);
-    } else {
-      console.warn(`Unexpected stage name: ${stageName}. Using a generic system prompt.`);
-      systemPrompt = "You are a helpful assistant. Please respond to the user's queries.";
-    }
-
-    console.log(`Creating new LLM for key ${key} with systemPrompt: ${systemPrompt || "No system prompt"}`);
-    
-    try {
-      playerRoundLLMs.set(key, new LLM(systemPrompt));
-      console.log(`LLM created for key ${key}`);
-    } catch (error) {
-      console.error(`Error creating LLM for key ${key}:`, error);
-      throw error;
-    }
-  } else {
-    console.log(`Existing LLM found for key ${key}`);
-  }
-  
-  return playerRoundLLMs.get(key);
-}
- */
-
 function setupRounds(game, treatment) {
   const { taskType, cueType, interOrder, selfOrder, categoryOrder } = treatment
   const players = game.players;
@@ -309,27 +245,6 @@ Empirica.onStageStart(({ stage }) => {
   const game = stage.currentGame;
   const treatment = game.get("treatment");
   console.log(`Stage ${stageName} started for game ${game.id}. Treatment:`, treatment);
-
-  /* const llmStages = ["LocalAPI", "VerbalFluencyTask", "VerbalFluencyCollab"];
-
-  if (llmStages.includes(stageName)) {
-    game.players.forEach(player => {
-      try {
-        const roundName = player.currentRound.get("name");
-        const category = player.currentRound.get("category");
-        const llm = getOrCreateLLM(player.id, roundName, stageName, treatment, category);
-        if (llm) {
-          console.log(`onStageStart LLM ready for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
-        } else {
-          console.log(`onStageStart LLM not required for player ${player.id}, stage ${stageName}, round ${roundName}, game ${game.id}, category ${category}`);
-        }
-      } catch (error) {
-        console.error(`onStageStart Error preparing LLM for player ${player.id}, stage ${stageName}, game ${game.id}:`, error);
-      }
-    });
-  } else {
-    console.log(`Stage ${stageName} does not require LLM creation.`);
-  } */
 });
 
 Empirica.onStageEnded(({ stage }) => {
@@ -388,26 +303,6 @@ Empirica.onGameEnded(({ game }) => {
   const taskCategories = game.get("taskCategory");
   console.log(`Task type: ${taskType}, taskIndices: ${taskIndices}, taskCategories: ${taskCategories}`);
 
-/*   // Find all LLM keys associated with this game's players
-  const keysToDelete = [];
-  for (const [key, llm] of playerRoundLLMs.entries()) {
-    game.players.forEach(player => {
-      if (key.startsWith(`${player.id}-`)) {
-        keysToDelete.push(key);
-        console.log(`Marked LLM key for deletion: ${key}`);
-      }
-    });
-  }
-
-  // Delete the LLMs - maybe move to onStageEnded?
-  keysToDelete.forEach(key => {
-    playerRoundLLMs.delete(key);
-    console.log(`Deleted LLM for key: ${key}`);
-  }); */
-
-  // Log the size of the LLM map after cleanup
-  //console.log(`LLM map size after cleanup: ${playerRoundLLMs.size}`);
-
   game.players.forEach(player => {
     player.set("taskType", taskType);
     player.set("taskIndices", taskIndices);
@@ -417,72 +312,6 @@ Empirica.onGameEnded(({ game }) => {
   });
 });
 
-// Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
-//   console.log("API trigger changed for player", player.id);
-//   const currentStage = player.currentStage;
-//   const currentRound = player.currentRound;
-//   console.log("Current stage name:", currentStage.get("name"));
-
-//   if (!player.get("apiTrigger")) {
-//       console.log("API trigger is false, skipping API call");
-//       return;
-//   }
-
-//   console.log("Processing API call");
-
-//   try {
-//       const treatment = player.currentGame.get("treatment");
-//       if (!treatment) {
-//           throw new Error("Treatment not found for the current round");
-//       }
-//       console.log("Treatment for current round:", treatment);
-      
-//       const roundName = currentRound.get("name");
-//       const category = player.round.get("category");
-//       const requestTime = Date.now();
-//       player.round.set("lastRequestTime", requestTime);
-
-//       console.log("Making API call with:", {treatment, roundName, category});
-//       const llm = getOrCreateLLM(player.id, roundName, currentStage.get("name"), treatment, category);
-      
-//       const pastWords = player.round.get("words") || [];
-//       const lastWord = player.round.get("lastWord") || "";
-//       const userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
-
-//       const llmResponse = await llm.generate(userPrompt);
-
-//       // Add artificial delay with Gaussian distribution
-//       const meanDelay = 1500;  // 1.5 seconds
-//       const stdDev = 500;      // 0.5 seconds
-//       const minDelay = 500;      // Minimum delay in milliseconds
-//       const maxDelay = 10000;   // Maximum delay in milliseconds
-
-//       const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
-//       await new Promise(resolve => setTimeout(resolve, delay));
-
-//       const responseTime = Date.now();
-//       const apiLatency = responseTime - requestTime;
-
-//       console.log("API response received:", {
-//           text: llmResponse,
-//           timestamp: responseTime,
-//           requestTime: requestTime,
-//           apiLatency: apiLatency
-//       });
-      
-//       await player.stage.set("apiResponse", {
-//           text: llmResponse,
-//           timestamp: responseTime,
-//           apiLatency: apiLatency
-//       });
-
-//   } catch (error) {
-//       console.error("API call or state update failed:", error);
-//       await player.stage.set("apiError", error.message);
-//   } finally {
-//       await player.set("apiTrigger", false);
-//   }
-// });
 
 Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   if (!player.get("apiTrigger")) {
