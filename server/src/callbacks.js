@@ -103,8 +103,10 @@ function gaussianRandom(mean, standardDeviation, min, max) {
   return Math.min(Math.max(result, min), max);
 }
 
+
 Empirica.onGameStart(({ game }) => {
   const treatment = game.get("treatment");
+  const players = game.players;
   setupRounds(game, treatment);
   console.log(`Game ${game.id} rounds set up for treatment:`, treatment);
 
@@ -142,6 +144,11 @@ Empirica.onGameStart(({ game }) => {
   game.set("taskCategory", taskCategory);
   game.set("currentRoundIndex", 0);  // Initialize round counter
   game.set("hhRoundIndex", 0);       // Initialize HH round counter
+
+  players.forEach((player) => {
+    player.set("slowResponsePenalties", 0);
+  });
+
   console.log(`Task Index set for game ${game.id}:`, taskIndex);
   console.log(`Task Category set for game ${game.id}:`, taskCategory);
 });
@@ -333,7 +340,7 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       
       const pastWords = player.round.get("words") || [];
       const lastWord = player.round.get("lastWord") || "";
-      const userPrompt = `Hint requested. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+      const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
 
       console.log(`Making API call for player ${player.id}, session ${sessionId}`);
       const response = await client.generate(
@@ -392,6 +399,14 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   await player.set("requestTimestamp", false);
   await Empirica.flush();
 
+  //issue: there is a bottleneck here, if the api call from one player is not finished, the timestamp from the other player will not be updated and word submission fails!
+  //tried: removing empirica.flush, did not work; batch processing, did not work. try: removing await/ removing await and flush / removing await and keeping await flush
+  //consider - queue system; changing timeout in client side; moving timestamps to client side
+
+  //player.stage.set("serverTimestamp", timestamp);
+  //player.set("requestTimestamp", false);
+  // await Empirica.flush();
+
   const verifyTimestamp = player.stage.get("serverTimestamp");
   console.log(`[Timestamp Service] Response for ${player.id}:`, {
     set: timestamp,
@@ -399,3 +414,4 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
     match: timestamp === verifyTimestamp
   });
 });
+
