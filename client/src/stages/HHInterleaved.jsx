@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, usePlayers, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { TimeProgressBar } from "../components/TimeProgressBar";
 
 export function HHInterleaved() {
   const [currentWord, setCurrentWord] = useState("");
@@ -17,6 +18,19 @@ export function HHInterleaved() {
   const isSubmittingRef = useRef(false);
 
   const [currentTimestamp, setCurrentTimestamp] = useState(null);
+
+  //State variable for progress bar
+  const [showProgressBar, setShowProgressBar] = useState(false);
+
+  // Add an effect to handle turn changes for progress bar
+  useEffect(() => {
+  // When the turn changes to this player, start the progress bar
+    if (round.get("currentTurnPlayerId") === player.id) {
+      setShowProgressBar(true);
+    } else {
+      setShowProgressBar(false);
+    }
+  }, [round.get("currentTurnPlayerId")]);
 
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
@@ -114,6 +128,9 @@ export function HHInterleaved() {
     isSubmittingRef.current = true;
     const wordToSubmit = currentWord.trim();
     setCurrentWord(""); // Clear input immediately
+
+    // Reset the progress bar when a word is submitted
+    setShowProgressBar(false);
   
     try {
       // Check for duplicates before proceeding
@@ -238,6 +255,10 @@ export function HHInterleaved() {
             Send
           </Button>
         </div>
+
+        {showProgressBar && isPlayerTurn && (
+        <TimeProgressBar isActive={showProgressBar && isPlayerTurn} />
+        )}
   
         {/* Status Messages */}
         {isSubmittingRef.current ? (
@@ -251,5 +272,3 @@ export function HHInterleaved() {
     </div>
   );
 }
-
-

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePlayer, useRound, useStage } from "@empirica/core/player/classic/react";
 import { Button } from "../components/Button";
+import { TimeProgressBar } from "../components/TimeProgressBar";
 
 export function VerbalFluencyCollab() {
   const [currentWord, setCurrentWord] = useState("");
@@ -11,6 +12,9 @@ export function VerbalFluencyCollab() {
   const stage = useStage();
   const category = player.round.get("category");
   const inputRef = useRef(null);
+
+  //states for the bar
+  const [showProgressBar, setShowProgressBar] = useState(false);
 
   // NEW: Track pending API responses to prevent lost responses
   const pendingResponseRef = useRef(false);
@@ -97,6 +101,8 @@ async function getServerTimestamp() {
     isSubmittingRef.current = true;
     const wordToSubmit = currentWord.trim();
     setCurrentWord(""); // Clear input immediately
+
+    setShowProgressBar(false);
   
     try {
 
@@ -138,14 +144,10 @@ async function getServerTimestamp() {
         const lastWord = words[words.length - 1];
         const responseDelay = relativeTimestamp - lastWord.timestamp;
         if (responseDelay > 10000) { // 10 seconds in milliseconds
-        //   const currentPenalties = player.get("slowResponsePenalties") || 0;
-        //   player.set("slowResponsePenalties", currentPenalties + 1);
-        //   console.log(`Slow response penalty applied: ${responseDelay}ms`);
-        // }
-          responseDelay = Math.floor(responseDelay / 10000);
+          const delayPoints = Math.floor(responseDelay / 10000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
-          player.set("slowResponsePenalties", currentPenalties + responseDelay);
-          console.log(`Slow response penalty applied: ${responseDelay} penalties`);
+          player.set("slowResponsePenalties", currentPenalties + delayPoints);
+          console.log(`Slow response penalty applied: ${delayPoints} penalties`);
         }
       }
   
@@ -244,6 +246,9 @@ async function getServerTimestamp() {
     setIsWaitingForAI(false);
     await player.stage.set("apiResponse", null);
 
+    // Start the progress bar
+    setShowProgressBar(true);
+
     console.log("AI response processed. Updated words:", updatedWords);
   }
 
@@ -268,9 +273,9 @@ async function getServerTimestamp() {
               <div className={`text-4xl font-bold ${lastWord.startsWith('You:') ? 'text-slate-600' : 'text-slate-800'}`}>
                 {lastWord.replace(/^(You:|Partner:)\s/, '')}
               </div>
-              <div className="text-sm text-gray-500 mt-1">
+              {/* <div className="text-sm text-gray-500 mt-1">
                 {lastWord.startsWith('You:') ? 'Your turn again' : 'Your turn'}
-              </div>
+              </div> */}
             </div>
           ) : (
             <div className="text-2xl text-gray-600 mb-6">No words yet - start the conversation!</div>
@@ -322,6 +327,10 @@ async function getServerTimestamp() {
             Send
           </Button>
         </div>
+
+        {showProgressBar && !isWaitingForAI && (
+        <TimeProgressBar isActive={showProgressBar && !isWaitingForAI} />
+        )}
         
         <div className="text-center">
           {!isWaitingForAI ? (
@@ -333,38 +342,4 @@ async function getServerTimestamp() {
       </div>
     </div>
   );
-
-  // return (
-  //   <div className="flex flex-col items-center justify-center h-full">
-  //     <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
-  //     <div className="mt-8 text-4xl font-bold mb-8">
-  //       {lastWord || "No words yet"}
-  //     </div>
-  //     <div className="w-full max-w-md">
-  //       <div className="flex items-center mb-4">
-  //         <input
-  //           ref={inputRef}  // Add this line
-  //           value={currentWord}
-  //           onChange={(e) => setCurrentWord(e.target.value)}
-  //           onKeyDown={handleKeyDown}
-  //           placeholder="Enter an item..."
-  //           className="flex-grow p-2 border border-gray-300 rounded mr-2"
-  //           disabled={isWaitingForAI || isSubmittingRef.current}
-  //           autoFocus
-  //         />
-  //         <Button 
-  //           handleClick={handleSendWord} 
-  //           disabled={isWaitingForAI || isSubmittingRef.current || currentWord.trim() === ""}
-  //         >
-  //           Send
-  //         </Button>
-  //       </div>
-  //       {!isWaitingForAI ? (
-  //         <p className="mt-2 text-green-600">It's your turn!</p>
-  //       ) : (
-  //         <p className="mt-2 text-gray-600">Waiting for your partner...</p>
-  //       )}
-  //     </div>
-  //   </div>
-  // );
 }
