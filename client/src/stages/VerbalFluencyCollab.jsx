@@ -138,9 +138,14 @@ async function getServerTimestamp() {
         const lastWord = words[words.length - 1];
         const responseDelay = relativeTimestamp - lastWord.timestamp;
         if (responseDelay > 10000) { // 10 seconds in milliseconds
+        //   const currentPenalties = player.get("slowResponsePenalties") || 0;
+        //   player.set("slowResponsePenalties", currentPenalties + 1);
+        //   console.log(`Slow response penalty applied: ${responseDelay}ms`);
+        // }
+          responseDelay = Math.floor(responseDelay / 10000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
-          player.set("slowResponsePenalties", currentPenalties + 1);
-          console.log(`Slow response penalty applied: ${responseDelay}ms`);
+          player.set("slowResponsePenalties", currentPenalties + responseDelay);
+          console.log(`Slow response penalty applied: ${responseDelay} penalties`);
         }
       }
   

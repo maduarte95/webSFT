@@ -157,9 +157,14 @@ export function HHInterleaved() {
         const lastWord = words[words.length - 1];
         const responseDelay = relativeTimestamp - lastWord.timestamp;
         if (responseDelay > 10000) { // 10 seconds in milliseconds
+          //   const currentPenalties = player.get("slowResponsePenalties") || 0;
+          //   player.set("slowResponsePenalties", currentPenalties + 1);
+          //   console.log(`Slow response penalty applied: ${responseDelay}ms`);
+          // }
+          const delayPoints = Math.floor(responseDelay / 10000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
-          player.set("slowResponsePenalties", currentPenalties + 1);
-          console.log(`Slow response penalty applied: ${responseDelay}ms`);
+          player.set("slowResponsePenalties", currentPenalties + delayPoints);
+          console.log(`Slow response penalty applied: ${delayPoints} penalties`);
         }
       }
   

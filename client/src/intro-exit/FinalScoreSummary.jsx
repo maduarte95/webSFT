@@ -7,7 +7,8 @@ export function FinalScoreSummary({ next }) {
   const player = usePlayer();
   const score = player.get("score") || 0;
   const bonusRate = 0.02; // $0.01 per point
-  const penaltyAmount = 0.01; // £0.01 per slow response
+  const penaltyRate = 0.01; // £0.01 per slow response
+  const penaltyAmount = player.get("slowResponsePenalties") * penaltyRate;
   const slowResponsePenalties = player.get("slowResponsePenalties") || 0;
   // const totalBonus = (score * bonusRate).toFixed(2); // Format to 2 decimal places
   const bonusBeforePenalty = score * bonusRate;
@@ -25,10 +26,16 @@ export function FinalScoreSummary({ next }) {
             Final Bonus: <span className="font-bold">£{totalBonus}</span>
             <span className="text-sm ml-2">(£0.02 per point)</span>
           </p>
+          {bonusBeforePenalty > 0 && (
+            <p className="text-md text-green-600">
+              Word bonus: £{bonusBeforePenalty.toFixed(2)}
+              <span className="text-sm ml-2">(£0.02 per point)</span>
+            </p>
+          )}
           {slowResponsePenalties > 0 && (
             <p className="text-md text-red-600">
-              Slow response penalty: -£{penaltyAmount.toFixed(2)} 
-              ({slowResponsePenalties} slow {slowResponsePenalties === 1 ? 'response' : 'responses'})
+              Slow response penalty: -£{penaltyAmount.toFixed(2)}
+              <span className="text-sm ml-2">(-£0.01 per 10s)</span> 
             </p>
           )}
         </div>

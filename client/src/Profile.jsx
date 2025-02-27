@@ -24,6 +24,7 @@ export function Profile() {
   const maxRounds = taskIndices.length;
   const roundScore = player.round.get("score") || 0;
   const totalScore = player.get("score") || 0;
+  const penalties = player.get("slowResponsePenalties")
 
   return (
     <div className="min-w-lg md:min-w-2xl mt-2 m-x-auto px-3 py-2 text-gray-500 rounded-md grid grid-cols-3 items-center border-.5">
@@ -46,6 +47,9 @@ export function Profile() {
           </div>
           <div className="text-xs font-semibold text-gray-400 mt-1">
             Total: {totalScore}
+          </div>
+          <div className="text-xs font-semibold text-gray-400 mt-1">
+            Penalties: {penalties}
           </div>
         </div>
         <div className="h-11 w-11">
