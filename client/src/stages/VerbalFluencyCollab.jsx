@@ -27,6 +27,11 @@ export function VerbalFluencyCollab() {
     return <div>Loading...</div>;
   }
 
+  //Show progress bar in first render
+  useEffect(() => {
+    setShowProgressBar(true);
+  }, []);
+
   useEffect(() => {
     // When isWaitingForAI becomes false, focus the input
     if (!isWaitingForAI && inputRef.current) {
@@ -150,6 +155,18 @@ async function getServerTimestamp() {
           console.log(`Slow response penalty applied: ${delayPoints} penalties`);
         }
       }
+
+      //add penalty for slow first word too
+      if (words.length === 0) {
+        const responseDelay = relativeTimestamp;
+        if (responseDelay > 10000) { // 10 seconds in milliseconds
+          const delayPoints = Math.floor(responseDelay / 10000);
+          const currentPenalties = player.get("slowResponsePenalties") || 0;
+          player.set("slowResponsePenalties", currentPenalties + delayPoints);
+          console.log(`Slow response penalty applied to first word: ${delayPoints} penalties`);
+        }
+      }
+
   
       const updatedWords = [...words, {
         text: wordToSubmit,

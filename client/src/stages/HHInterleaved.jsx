@@ -32,6 +32,13 @@ export function HHInterleaved() {
     }
   }, [round.get("currentTurnPlayerId")]);
 
+  // //Disable progress bar in first turn
+  // useEffect(() => {
+  //   if (round.get("currentTurnPlayerId") === player.id && round.get("words").length === 0) {
+  //     setShowProgressBar(false);
+  //   }
+  // }, [round.get("currentTurnPlayerId"), round.get("words")]);
+
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
@@ -184,6 +191,17 @@ export function HHInterleaved() {
           console.log(`Slow response penalty applied: ${delayPoints} penalties`);
         }
       }
+
+      //add penalty for slow first word too
+      if (words.length === 0) {
+        const responseDelay = relativeTimestamp;
+        if (responseDelay > 10000) { // 10 seconds in milliseconds
+          const delayPoints = Math.floor(responseDelay / 10000);
+          const currentPenalties = player.get("slowResponsePenalties") || 0;
+          player.set("slowResponsePenalties", currentPenalties + delayPoints);
+          console.log(`Slow response penalty applied to first word: ${delayPoints} penalties`);
+        }
+      }
   
       const updatedWords = [...words, {
         text: wordToSubmit,
@@ -215,12 +233,42 @@ export function HHInterleaved() {
     }
   }
 
+  
   return (
     <div className="flex flex-col items-center justify-center h-full">
-      <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+      <h2 className="text-3xl font-bold mb-6">Name as many items as you can: {category}</h2>
       
-      <div className="mt-8 text-4xl font-bold mb-8">
-        {lastWord || "No words yet"}
+      <div className="w-full max-w-2xl p-6 bg-gray-50 rounded-lg shadow-md mb-8">
+        <div className="text-center">
+          {lastWord ? (
+            <div className="flex flex-col items-center mb-4">
+              <div className="text-sm uppercase tracking-wide text-gray-500 mb-1">
+                {lastWord.startsWith('You:') ? 'Your last word' : 'Partner\'s last word'}
+              </div>
+              <div className={`text-4xl font-bold ${lastWord.startsWith('You:') ? 'text-slate-600' : 'text-slate-800'}`}>
+                {lastWord.replace(/^(You:|Partner:)\s/, '')}
+              </div>
+            </div>
+          ) : (
+            <div className="text-2xl text-gray-600 mb-6">No words yet - start the conversation!</div>
+          )}
+        </div>
+        
+        <div className="mt-4 border-t border-gray-200 pt-4">
+          <div className="text-sm text-gray-500 mb-2 text-center">Word History</div>
+          <div className="max-h-32 overflow-y-auto px-4">
+            {(round.get("words") || []).map((word, index) => (
+              <div key={index} className="text-center mb-2">
+                <span className={`font-medium ${word.player === player.id ? 'text-slate-600' : 'text-slate-800'}`}>
+                  {word.player === player.id ? 'You' : 'Partner'}:
+                </span>
+                <span className={`ml-2 text-lg ${word.player === player.id ? 'text-slate-600' : 'text-slate-800'}`}>
+                  {word.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
       
       <div className="w-full max-w-md">
@@ -236,13 +284,13 @@ export function HHInterleaved() {
               }
             }}
             placeholder="Enter an item..."
-            className={`flex-grow p-2 border rounded mr-2 ${
+            className={`flex-grow p-3 text-lg border rounded-l-lg focus:outline-none focus:ring-2 ${
               !isPlayerTurn || isSubmittingRef.current
-                ? 'border-gray-300 bg-gray-50'
-                : 'border-gray-300'
+                ? 'bg-gray-100 border-gray-300 text-gray-500'
+                : 'border-blue-300 focus:ring-blue-500'
             }`}
             disabled={!isPlayerTurn || isSubmittingRef.current}
-            autoFocus
+            autoFocus={isPlayerTurn}
           />
           <Button 
             handleClick={handleSendWord} 
@@ -257,18 +305,74 @@ export function HHInterleaved() {
         </div>
 
         {showProgressBar && isPlayerTurn && (
-        <TimeProgressBar isActive={showProgressBar && isPlayerTurn} />
+          <TimeProgressBar isActive={showProgressBar && isPlayerTurn} />
         )}
-  
-        {/* Status Messages */}
-        {isSubmittingRef.current ? (
-          <p className="mt-2 text-gray-600">Submitting...</p>
-        ) : isPlayerTurn ? (
-          <p className="mt-2 text-green-600">It's your turn!</p>
-        ) : (
-          <p className="mt-2 text-gray-600">Waiting for your partner...</p>
-        )}
+        
+        <div className="text-center">
+          {!isPlayerTurn ? (
+            <p className="text-lg font-medium text-gray-600">Waiting for your partner...</p>
+          ) : (
+            <p className="text-lg font-medium text-emerald-600">It's your turn!</p>
+          )}
+        </div>
       </div>
     </div>
   );
+
+  // return (
+  //   <div className="flex flex-col items-center justify-center h-full">
+  //     <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+      
+  //     <div className="mt-8 text-4xl font-bold mb-8">
+  //       {lastWord || "No words yet"}
+  //     </div>
+      
+  //     <div className="w-full max-w-md">
+  //       <div className="flex items-center mb-4">
+  //         <input
+  //           ref={inputRef}
+  //           value={currentWord}
+  //           onChange={(e) => setCurrentWord(e.target.value)}
+  //           onKeyDown={(e) => {
+  //             if (e.key === "Enter" && !e.repeat) {
+  //               e.preventDefault();
+  //               handleSendWord();
+  //             }
+  //           }}
+  //           placeholder="Enter an item..."
+  //           className={`flex-grow p-2 border rounded mr-2 ${
+  //             !isPlayerTurn || isSubmittingRef.current
+  //               ? 'border-gray-300 bg-gray-50'
+  //               : 'border-gray-300'
+  //           }`}
+  //           disabled={!isPlayerTurn || isSubmittingRef.current}
+  //           autoFocus
+  //         />
+  //         <Button 
+  //           handleClick={handleSendWord} 
+  //           disabled={
+  //             !isPlayerTurn || 
+  //             isSubmittingRef.current || 
+  //             currentWord.trim() === ""
+  //           }
+  //         >
+  //           Send
+  //         </Button>
+  //       </div>
+
+  //       {showProgressBar && isPlayerTurn && (
+  //       <TimeProgressBar isActive={showProgressBar && isPlayerTurn} />
+  //       )}
+  
+  //       {/* Status Messages */}
+  //       {isSubmittingRef.current ? (
+  //         <p className="mt-2 text-gray-600">Submitting...</p>
+  //       ) : isPlayerTurn ? (
+  //         <p className="mt-2 text-green-600">It's your turn!</p>
+  //       ) : (
+  //         <p className="mt-2 text-gray-600">Waiting for your partner...</p>
+  //       )}
+  //     </div>
+  //   </div>
+  // );
 }
