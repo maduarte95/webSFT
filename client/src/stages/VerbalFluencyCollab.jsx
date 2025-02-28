@@ -21,10 +21,36 @@ export function VerbalFluencyCollab() {
   // NEW: Synchronous submission lock
   const isSubmittingRef = useRef(false);
 
-  // Wait for serverStartTime before rendering interactive elements
+  //get client side time with offset
+  const [clientTimeOffset, setClientTimeOffset] = useState(0);
+
+  
+  // Wait for serverStartTime before rendering interactive elements //issue - this is not synchronized! will lead to negative timestamps!
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
     return <div>Loading...</div>;
+  }
+  
+  // Calculate and store the time offset when component mounts
+  useEffect(() => {
+    if (serverStartTime) {
+      const clientTime = Date.now();
+      // Calculate how much the client time needs to be adjusted to match server time
+      const offset = serverStartTime - clientTime;
+      setClientTimeOffset(offset);
+      console.log(`Time offset calculated: ${offset}ms (client: ${clientTime}, server: ${serverStartTime}) for stage ${stage.get("name")}`);
+    }
+  }, [serverStartTime]);
+  
+  // Get a timestamp adjusted to match server time
+  function getAdjustedTimestamp() {
+    return Date.now() + clientTimeOffset;
+  }
+  
+  // Get a timestamp relative to stage start
+  function getRelativeTimestamp() {
+    const adjustedNow = getAdjustedTimestamp();
+    return Math.max(0, adjustedNow - serverStartTime);
   }
 
   //Show progress bar in first render
@@ -128,26 +154,30 @@ async function getServerTimestamp() {
       setIsWaitingForAI(true);
       console.log(`[Player ${player.id}] Starting word submission`);
 
-      const timestamp = await getServerTimestamp();
-      if (!timestamp) {
-        throw new Error("No timestamp received");
-      }
-  
-      console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
-      
+      // const timestamp = await getServerTimestamp();
+      // if (!timestamp) {
+      //   throw new Error("No timestamp received");
+      // }
+
+      //const timestamp = Date.now();
+        
       if (!serverStartTime) {
         throw new Error("No server start time available");
       }
 
-      const relativeTimestamp = timestamp - serverStartTime;
-      if (relativeTimestamp < 0) {
-        throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
-      }
+      // const relativeTimestamp = timestamp - serverStartTime;
+      // if (relativeTimestamp < 0) {
+      //   throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
+      // }
+
+      const timestamp = getRelativeTimestamp();
+      console.log(`[Player ${player.id}] Got relative timestamp for player word: ${timestamp}`);
+
 
       // Check if player took too long to respond to the last word
       if (words.length > 0) {
         const lastWord = words[words.length - 1];
-        const responseDelay = relativeTimestamp - lastWord.timestamp;
+        const responseDelay = timestamp - lastWord.timestamp;
         if (responseDelay > 10000) { // 10 seconds in milliseconds
           const delayPoints = Math.floor(responseDelay / 10000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
@@ -158,7 +188,7 @@ async function getServerTimestamp() {
 
       //add penalty for slow first word too
       if (words.length === 0) {
-        const responseDelay = relativeTimestamp;
+        const responseDelay = timestamp;
         if (responseDelay > 10000) { // 10 seconds in milliseconds
           const delayPoints = Math.floor(responseDelay / 10000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
@@ -171,7 +201,7 @@ async function getServerTimestamp() {
       const updatedWords = [...words, {
         text: wordToSubmit,
         source: 'user',
-        timestamp: relativeTimestamp
+        timestamp: timestamp
       }];
  
       await player.round.set("words", updatedWords);
@@ -182,7 +212,6 @@ async function getServerTimestamp() {
         word: wordToSubmit,  // Changed from currentWord.trim()
         timestamp,
         serverStartTime,
-        relativeTimestamp
       });
       
       console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
@@ -205,15 +234,19 @@ async function getServerTimestamp() {
         }
 
         // Get and validate timestamp before any state changes
-        const timestamp = await getServerTimestamp();
-        if (!timestamp) {
-            throw new Error("Failed to get timestamp for AI request");
-        }
+        // const timestamp = await getServerTimestamp();
+        // if (!timestamp) {
+        //     throw new Error("Failed to get timestamp for AI request");
+        // }
+        // const timestamp = Date.now();
 
-        const relativeTimestamp = timestamp - serverStartTime;
-        if (relativeTimestamp < 0) {
-            throw new Error("Invalid relative timestamp");
-        }
+        // const relativeTimestamp = timestamp - serverStartTime;
+        // if (relativeTimestamp < 0) {
+        //     throw new Error("Invalid relative timestamp");
+        // }
+
+        const relativeTimestamp = getRelativeTimestamp();
+        console.log(`[Player ${player.id}] Relative timestamp for AI request: ${relativeTimestamp}`);
 
         // Track that we're expecting a response
         pendingResponseRef.current = true;
@@ -251,12 +284,23 @@ async function getServerTimestamp() {
 
     console.log("AI response timestamp since start of task:", response.timestamp, "setting words");
 
-    //DEBUG FEB 19 - log the response timestamp obtained the same way as the user timestamp (with get server timestamp function) to see if they're the same
-    const alternativeTimestamp = await getServerTimestamp();
-    console.log("Alternative client-side absolute timestamp:", alternativeTimestamp);
-    const alternativeLatency = alternativeTimestamp - serverStartTime;
-    console.log("Alternative client-side stage timestamp since start of task:", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
-    //END DEBUG
+    // //DEBUG FEB 19 - log the response timestamp obtained the same way as the user timestamp (with get server timestamp function) to see if they're the same
+    // const alternativeTimestamp = await getServerTimestamp();
+    // console.log("Alternative client-side absolute timestamp:", alternativeTimestamp);
+    // const alternativeLatency = alternativeTimestamp - serverStartTime;
+    // console.log("Alternative client-side stage timestamp since start of task:", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
+    // //END DEBUG
+
+    //Debug client-side timestamp
+    // const clientTimestamp = Date.now();
+    // console.log("Client-side timestamp:", clientTimestamp);
+    // const clientrelativeTimestamp = clientTimestamp - serverStartTime;
+    // console.log("Client-side relative timestamp:", clientrelativeTimestamp);
+
+    const clientTimestamp = getAdjustedTimestamp();
+    console.log("Client-side timestamp:", clientTimestamp);
+    const clientrelativeTimestamp = getRelativeTimestamp();
+    console.log("Client-side relative timestamp:", clientrelativeTimestamp);
     
     await player.round.set("words", updatedWords);
     setLastWord(`Partner: ${response.text}`);
