@@ -399,6 +399,11 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   await player.set("requestTimestamp", false);
   await Empirica.flush();
 
+  // player.stage.set("serverTimestamp", timestamp);
+  // player.set("requestTimestamp", false);
+  //await Empirica.flush();
+
+
   //issue: there is a bottleneck here, if the api call from one player is not finished, the timestamp from the other player will not be updated and word submission fails!
   //tried: removing empirica.flush, did not work; batch processing, did not work. try: removing await/ removing await and flush / removing await and keeping await flush
   //consider - queue system; changing timeout in client side; moving timestamps to client side
@@ -415,3 +420,52 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   });
 });
 
+
+// Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
+//   console.log(`[Timestamp Service] New request from player ${player.id}`);
+//   console.log(`[Timestamp Service] Current stage: ${player.currentStage.get("name")}`);
+  
+//   if (!player.get("requestTimestamp")) {
+//     console.log(`[Timestamp Service] Request flag is false for player ${player.id}. Skipping update.`);
+//     return;
+//   }
+  
+//   const timestamp = Date.now();
+  
+//   // Set the timestamp
+//   await player.stage.set("serverTimestamp", timestamp);
+//   await Empirica.flush();
+  
+//   // Verify the timestamp was set correctly (with retries)
+//   let verificationSuccess = false;
+//   let verifiedTimestamp = null;
+//   let retryCount = 0;
+//   const maxRetries = 5;
+  
+//   while (!verificationSuccess && retryCount < maxRetries) {
+//     verifiedTimestamp = player.stage.get("serverTimestamp");
+//     console.log(`[Timestamp Service] Verification attempt ${retryCount + 1} for ${player.id}: ${verifiedTimestamp}`);
+    
+//     if (verifiedTimestamp === timestamp) {
+//       verificationSuccess = true;
+//     } else {
+//       retryCount++;
+//       // Small delay between retries (50ms)
+//       await new Promise(resolve => setTimeout(resolve, 50));
+//       // Try to set it again
+//       await player.stage.set("serverTimestamp", timestamp);
+//       await Empirica.flush();
+//     }
+//   }
+  
+//   // Only reset the flag after successful verification or max retries
+//   await player.set("requestTimestamp", false);
+//   await Empirica.flush();
+  
+//   console.log(`[Timestamp Service] Response for ${player.id}: { 
+//     set: ${timestamp}, 
+//     verified: ${verifiedTimestamp}, 
+//     match: ${verifiedTimestamp === timestamp},
+//     retries: ${retryCount} 
+//   }`);
+// });
