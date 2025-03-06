@@ -23,7 +23,7 @@ export function FinalScoreSummary({ next }) {
           </p>
           <p className="text-xl">
             Final Bonus: <span className="font-bold">£{totalBonus}</span>
-            <span className="text-sm ml-2">(£0.02 per point)</span>
+            {/* <span className="text-sm ml-2">(£0.02 per point)</span> */}
           </p>
           {bonusBeforePenalty > 0 && (
             <p className="text-md text-green-600">
@@ -34,7 +34,7 @@ export function FinalScoreSummary({ next }) {
           {slowResponsePenalties > 0 && (
             <p className="text-md text-red-600">
               Slow response penalty: -£{penaltyAmount.toFixed(2)}
-              <span className="text-sm ml-2">(-£0.01 per 10s)</span> 
+              <span className="text-sm ml-2">(-£0.01 per 20s)</span> 
             </p>
           )}
         </div>

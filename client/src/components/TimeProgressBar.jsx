@@ -16,7 +16,7 @@ export function TimeProgressBar({ isActive }) {
     }
     
     const intervalTime = 100; // update every 100ms for smoother animation
-    const totalTime = 10000; // 10 seconds
+    const totalTime = 20000; // 10 seconds -> 20s
     const intervalId = setInterval(() => {
       setProgress(prev => {
         const newProgress = prev + (intervalTime / totalTime) * 100;
@@ -32,7 +32,7 @@ export function TimeProgressBar({ isActive }) {
           setColor("bg-red-500");
         }
         
-        // Calculate penalties - one penalty for every completed 10 seconds
+        // Calculate penalties - one penalty for every completed totalTime seconds (10s or 20s)
         const newPenalties = Math.floor(newProgress / 100);
         
         // Show indicator and update penalties when time exceeds 10 seconds

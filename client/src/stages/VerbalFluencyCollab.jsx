@@ -178,8 +178,8 @@ async function getServerTimestamp() {
       if (words.length > 0) {
         const lastWord = words[words.length - 1];
         const responseDelay = timestamp - lastWord.timestamp;
-        if (responseDelay > 10000) { // 10 seconds in milliseconds
-          const delayPoints = Math.floor(responseDelay / 10000);
+        if (responseDelay > 20000) { // 10 seconds in milliseconds -> 20s
+          const delayPoints = Math.floor(responseDelay / 20000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
           player.set("slowResponsePenalties", currentPenalties + delayPoints);
           console.log(`Slow response penalty applied: ${delayPoints} penalties`);
@@ -189,8 +189,8 @@ async function getServerTimestamp() {
       //add penalty for slow first word too
       if (words.length === 0) {
         const responseDelay = timestamp;
-        if (responseDelay > 10000) { // 10 seconds in milliseconds
-          const delayPoints = Math.floor(responseDelay / 10000);
+        if (responseDelay > 20000) { // 10 seconds in milliseconds -> 20s
+          const delayPoints = Math.floor(responseDelay / 20000);
           const currentPenalties = player.get("slowResponsePenalties") || 0;
           player.set("slowResponsePenalties", currentPenalties + delayPoints);
           console.log(`Slow response penalty applied to first word: ${delayPoints} penalties`);
