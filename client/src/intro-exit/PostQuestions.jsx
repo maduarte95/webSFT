@@ -249,7 +249,7 @@ export function PostQuestions({ next }) {
         ))}
       </div>
       <div className="flex justify-between text-xs mt-1">
-        <span>Strongly AI system</span>
+        <span>Strongly AI System</span>
         <span>Strongly Human</span>
       </div>
     </div>

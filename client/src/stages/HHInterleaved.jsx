@@ -23,6 +23,9 @@ export function HHInterleaved() {
   //State variable for progress bar
   const [showProgressBar, setShowProgressBar] = useState(false);
 
+  const [clientTimeOffset, setClientTimeOffset] = useState(0);
+  
+
   // Add an effect to handle turn changes for progress bar
   useEffect(() => {
   // When the turn changes to this player, start the progress bar
@@ -52,6 +55,33 @@ export function HHInterleaved() {
   if (!serverStartTime) {
     return <div>Loading...</div>;
   }
+
+    // Get a timestamp adjusted to match server time
+  // function getAdjustedTimestamp() {
+  //   return Date.now() + clientTimeOffset;
+  // }
+
+  //debug - just use client time - seems to work
+  function getAdjustedTimestamp() {
+    return Date.now()
+  }
+  
+  // Get a timestamp relative to stage start
+  function getRelativeTimestamp() {
+    const adjustedNow = getAdjustedTimestamp();
+    return Math.max(0, adjustedNow - serverStartTime);
+  }
+  
+  // Calculate and store the time offset when component mounts
+  useEffect(() => {
+      if (serverStartTime) {
+        const clientTime = Date.now();
+        // Calculate how much the client time needs to be adjusted to match server time
+        const offset = serverStartTime - clientTime;
+        setClientTimeOffset(offset);
+        console.log(`Time offset calculated: ${offset}ms (client: ${clientTime}, server: ${serverStartTime}) for stage ${stage.get("name")}`);
+      }
+    }, [serverStartTime]);
 
   useEffect(() => {
     if (isPlayerTurn && inputRef.current && !isSubmittingRef.current) {
@@ -163,18 +193,23 @@ export function HHInterleaved() {
   
       console.log(`[Player ${player.id}] Starting word submission`);
   
-      const timestamp = await getServerTimestamp();
-      if (!timestamp) {
-        throw new Error("No timestamp received");
-      }
+      // const timestamp = await getServerTimestamp();
+      // if (!timestamp) {
+      //   throw new Error("No timestamp received");
+      // }
   
-      console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
+      // console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
       
-      if (!serverStartTime) {
-        throw new Error("No server start time available");
-      }
+      // if (!serverStartTime) {
+      //   throw new Error("No server start time available");
+      // }
   
-      const relativeTimestamp = timestamp - serverStartTime;
+      // const relativeTimestamp = timestamp - serverStartTime;
+      // if (relativeTimestamp < 0) {
+      //   throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
+      // }
+
+      const relativeTimestamp = getRelativeTimestamp();
       if (relativeTimestamp < 0) {
         throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
       }
@@ -225,14 +260,16 @@ export function HHInterleaved() {
   
       console.log(`[Player ${player.id}] Word submission complete:`, {
         word: wordToSubmit,
-        timestamp,
+        //timestamp,
         relativeTimestamp,
         newTurn: otherPlayer.id
       });
+
+      console.log("Updated words:", updatedWords);
   
     } catch (error) {
       console.error(`[Player ${player.id}] Word submission failed:`, error);
-      // On error, restore the word to input if it wasn't a duplicate
+      // On error, restore the word to input if it wasn't a duplicate - ???
       if (wordToSubmit && !words?.some(w => w.text.toLowerCase() === wordToSubmit.toLowerCase())) {
         setCurrentWord(wordToSubmit);
       }
