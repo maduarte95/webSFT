@@ -121,17 +121,20 @@ export function IntroductionInterleaved({ next }) {
         <div className="bg-gray-50 p-6 rounded-lg">
           <p className="text-base font-bold mb-3">Display and Scoring:</p>
           <ul className="list-disc pl-5 space-y-2">
-            <li>The screen will show each word as it's submitted</li>
-            <li>You can see the current round score and remaining time</li>
-            <li>Score is based on the total number of items named together</li>
+            <li>Score for both players is based on the total number of of items named together unique items submitted by you and your partner</li>
+            <li>The screen will display all items named and the current score</li>
+            <li>A timer will show the remaining time for each round</li>
+            <li>Once your turn starts, an additional 20-second timer will be displayed. A penalty for slow responses will be applied every 20 seconds since the start of your turn.</li>
           </ul>
         </div>
 
         <div className="bg-yellow-50 p-6 rounded-lg">
-          <p className="text-base font-bold mb-3">Important:</p>
+          <p className="text-base font-bold mb-3">Important Notes:</p>
           <ul className="list-disc pl-5 space-y-2">
-            <li>Each word should be unique - no repetitions</li>
-            <li>Your bonus will be calculated from both rounds' scores</li>
+            <li>Press Enter to submit an item</li>
+            <li>Once your turn starts, submit an item as fast as possible</li>
+            <li>Each item should be unique - no repetitions</li>
+            <li>Your bonus will be based on the combined scores from all rounds with a deduction for slow responses</li>
             <li>You will receive the code for your bonus after you complete the post-task assessment</li>
           </ul>
         </div>

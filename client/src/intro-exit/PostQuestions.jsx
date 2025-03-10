@@ -229,13 +229,39 @@ export function PostQuestions({ next }) {
     </div>
   );
 
+  const renderLikertScaleAlternative = (taskIndex, name, question) => (
+    <div className="mb-4">
+      <label className="block text-sm font-medium text-gray-700 mb-2">{question}</label>
+      <div className="flex justify-between">
+        {[1, 2, 3, 4, 5, 6, 7].map((value) => (
+          <label key={value} className="flex flex-col items-center">
+            <input
+              type="radio"
+              name={`${name}_${taskIndex}`}
+              value={value}
+              checked={responses[taskIndex][name] === value.toString()}
+              onChange={(e) => handleChange(taskIndex, name, e.target.value)}
+              className="mb-1"
+              required
+            />
+            <span>{value}</span>
+          </label>
+        ))}
+      </div>
+      <div className="flex justify-between text-xs mt-1">
+        <span>Strongly AI system</span>
+        <span>Strongly Human</span>
+      </div>
+    </div>
+  );
+
   return (
     <div className="py-8 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="max-w-3xl mx-auto p-6">
         <h2 className="text-2xl font-bold mb-4">Post-Task Questionnaire</h2>
         <div className="mb-6 p-4 bg-gray-50 rounded-lg">
           <p className="text-gray-700">
-            Your partner may have been a human or an artificial intelligence (AI) system. 
+            Your partner may have been a human or an artificial intelligence (AI) system, and may have been different in each task. 
             Please recall the tasks you completed and rate the following statements from 
             1 (strongly disagree) to 7 (strongly agree). You will receive the code for your bonus reward in the next page.
           </p>
@@ -264,7 +290,17 @@ export function PostQuestions({ next }) {
               {renderLikertScale(
                 taskIndex,
                 "partnerHuman",
-                "I believe my partner was a human."
+                "It felt like my partner was a human."
+              )}
+              {renderLikertScale(
+                taskIndex,
+                "partnerAI",
+                "It felt like my partner was an AI system."
+              )}
+              {renderLikertScaleAlternative(
+                taskIndex,
+                "partnerWhich",
+                "Did you think your partner was a human or an AI system?"
               )}
               {errors[taskIndex] && (
                 <p className="text-red-500 mt-2">Please answer all questions for this task.</p>
