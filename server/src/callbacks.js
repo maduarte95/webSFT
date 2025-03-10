@@ -320,6 +320,68 @@ Empirica.onGameEnded(({ game }) => {
 });
 
 
+// Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
+//   if (!player.get("apiTrigger")) {
+//       console.log("API trigger is false, skipping API call");
+//       return;
+//   }
+
+//   try {
+//       const treatment = player.currentGame.get("treatment");
+//       const category = player.round.get("category");
+//       const requestTime = Date.now();
+      
+//       // Get exact agent name from mapping
+//       const agentName = getAgentName(treatment.cueType, category);
+//       console.log(`Using agent: ${agentName} for category: ${category}, cueType: ${treatment.cueType}`);
+      
+//       // Create session ID from game and round
+//       const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
+      
+//       const pastWords = player.round.get("words") || [];
+//       const lastWord = player.round.get("lastWord") || "";
+//       const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+
+//       console.log(`Making API call for player ${player.id}, session ${sessionId}`);
+//       const response = await client.generate(
+//           userPrompt,
+//           agentName,
+//           sessionId,
+//           player.id
+//       );
+
+//       // log actual latency
+//       const actualresponseTime = Date.now();
+//       const actualapiLatency = actualresponseTime - requestTime;
+//       console.log("Response received; Latency before artificial delay: ", actualapiLatency);
+
+//       // Add artificial delay
+//       const meanDelay = 1500;
+//       const stdDev = 500;
+//       const minDelay = 500;
+//       const maxDelay = 10000;
+//       const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
+//       await new Promise(resolve => setTimeout(resolve, delay));
+
+//       const responseTime = Date.now();
+      
+//       await player.stage.set("apiResponse", {
+//           text: response,
+//           timestamp: responseTime,
+//           apiLatency: responseTime - requestTime
+//       });
+
+//       console.log(`API response delayed, processed and set for player ${player.id}:`, response);
+
+//   } catch (error) {
+//       console.error(`API call failed for player ${player.id}:`, error);
+//       await player.stage.set("apiError", error.message);
+//   } finally {
+//       await player.set("apiTrigger", false);
+//   }
+// });
+
+// API call with retries for duplicated words
 Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
   if (!player.get("apiTrigger")) {
       console.log("API trigger is false, skipping API call");
@@ -340,15 +402,43 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       
       const pastWords = player.round.get("words") || [];
       const lastWord = player.round.get("lastWord") || "";
-      const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
 
-      console.log(`Making API call for player ${player.id}, session ${sessionId}`);
-      const response = await client.generate(
-          userPrompt,
-          agentName,
-          sessionId,
-          player.id
-      );
+      let attempts = 0;
+      const maxAttempts = 3;
+      let responseText = "";
+      let isDuplicate = true;
+      
+      // Try up to maxAttempts times to get a non-duplicate word
+      while (isDuplicate && attempts < maxAttempts) {
+          attempts++;
+          console.log(`AI response attempt #${attempts}`);
+          
+          const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+          
+          console.log(`Making API call for player ${player.id}, session ${sessionId}`);
+          responseText = await client.generate(
+              userPrompt,
+              agentName,
+              sessionId,
+              player.id
+          );
+          
+          // Check if this response is a duplicate of any existing word
+          isDuplicate = pastWords.some(w => 
+              w.text.toLowerCase() === responseText.toLowerCase()
+          );
+          
+          if (isDuplicate) {
+              console.log(`Duplicate AI response detected: "${responseText}". Retrying...`);
+          } else {
+              console.log(`Non-duplicate AI response received: "${responseText}"`);
+          }
+      }
+
+      // If all attempts resulted in duplicates, log this but still use the last response
+      if (isDuplicate) {
+          console.log(`Warning: Used duplicate response "${responseText}" after ${maxAttempts} attempts`);
+      }
 
       // log actual latency
       const actualresponseTime = Date.now();
@@ -366,12 +456,12 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       const responseTime = Date.now();
       
       await player.stage.set("apiResponse", {
-          text: response,
+          text: responseText,
           timestamp: responseTime,
           apiLatency: responseTime - requestTime
       });
 
-      console.log(`API response delayed, processed and set for player ${player.id}:`, response);
+      console.log(`API response delayed, processed and set for player ${player.id}:`, responseText);
 
   } catch (error) {
       console.error(`API call failed for player ${player.id}:`, error);
@@ -380,7 +470,6 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       await player.set("apiTrigger", false);
   }
 });
-
 
 Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   console.log(`[Timestamp Service] New request from player ${player.id}`);

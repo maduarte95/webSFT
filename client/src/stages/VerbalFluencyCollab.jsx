@@ -24,7 +24,6 @@ export function VerbalFluencyCollab() {
 
   //get client side time with offset
   const [clientTimeOffset, setClientTimeOffset] = useState(0);
-
   
   // Wait for serverStartTime before rendering interactive elements //issue - this is not synchronized! will lead to negative timestamps!
   const serverStartTime = stage.get("serverStartTime");
@@ -51,8 +50,13 @@ export function VerbalFluencyCollab() {
   }, [player.round.get("words")]);
   
   // Get a timestamp adjusted to match server time
+  // function getAdjustedTimestamp() {
+  //   return Date.now() + clientTimeOffset;
+  // }
+
+  //debug - just use client time - seems to work
   function getAdjustedTimestamp() {
-    return Date.now() + clientTimeOffset;
+    return Date.now()
   }
   
   // Get a timestamp relative to stage start
@@ -148,8 +152,8 @@ async function getServerTimestamp() {
       // Check for duplicates before setting waiting state
       const words = player.round.get("words") || [];
       const isDuplicate = words.some(w =>
-        w.text.toLowerCase() === wordToSubmit.toLowerCase() &&
-        w.source === 'user'
+        w.text.toLowerCase() === wordToSubmit.toLowerCase()
+        //&& w.source === 'user'
       );
 
       if (isDuplicate) {
@@ -417,88 +421,4 @@ async function getServerTimestamp() {
       </div>
     </div>
   );
-
-  // return (
-  //   <div className="flex flex-col items-center justify-center h-full">
-  //     <h2 className="text-3xl font-bold mb-6">Name as many items as you can: {category}</h2>
-      
-  //     <div className="w-full max-w-2xl p-6 bg-gray-50 rounded-lg shadow-md mb-8">
-  //       <div className="text-center">
-  //         {lastWord ? (
-  //           <div className="flex flex-col items-center mb-4">
-  //             <div className="text-sm uppercase tracking-wide text-gray-500 mb-1">
-  //               {lastWord.startsWith('You:') ? 'Your last word' : 'Partner\'s last word'}
-  //             </div>
-  //             <div className={`text-4xl font-bold ${lastWord.startsWith('You:') ? 'text-slate-600' : 'text-slate-800'}`}>
-  //               {lastWord.replace(/^(You:|Partner:)\s/, '')}
-  //             </div>
-  //             {/* <div className="text-sm text-gray-500 mt-1">
-  //               {lastWord.startsWith('You:') ? 'Your turn again' : 'Your turn'}
-  //             </div> */}
-  //           </div>
-  //         ) : (
-  //           <div className="text-2xl text-gray-600 mb-6">No words yet - start the conversation!</div>
-  //         )}
-  //       </div>
-        
-  //       <div className="mt-4 border-t border-gray-200 pt-4">
-  //         <div className="text-sm text-gray-500 mb-2 text-center">Word History</div>
-  //         <div className="max-h-32 overflow-y-auto px-4">
-  //           {(player.round.get("words") || []).map((word, index) => (
-  //             <div key={index} className="text-center mb-2">
-  //               <span className={`font-medium ${word.source === 'user' ? 'text-slate-600' : 'text-slate-800'}`}>
-  //                 {word.source === 'user' ? 'You' : 'Partner'}:
-  //               </span>
-  //               <span className={`ml-2 text-lg ${word.source === 'user' ? 'text-slate-600' : 'text-slate-800'}`}>
-  //                 {word.text}
-  //               </span>
-  //             </div>
-  //           ))}
-  //         </div>
-  //       </div>
-  //     </div>
-      
-  //     <div className="w-full max-w-md">
-  //       <div className="flex items-center mb-4">
-  //         <input
-  //           ref={inputRef}
-  //           value={currentWord}
-  //           onChange={(e) => setCurrentWord(e.target.value)}
-  //           onKeyDown={(e) => {
-  //             if (e.key === "Enter" && !e.repeat) {
-  //               e.preventDefault();
-  //               handleSendWord();
-  //             }
-  //           }}
-  //           placeholder="Enter an item..."
-  //           className={`flex-grow p-3 text-lg border rounded-l-lg focus:outline-none focus:ring-2 ${
-  //             isWaitingForAI || isSubmittingRef.current
-  //               ? 'bg-gray-100 border-gray-300 text-gray-500'
-  //               : 'border-blue-300 focus:ring-blue-500'
-  //           }`}
-  //           disabled={isWaitingForAI || isSubmittingRef.current}
-  //           autoFocus
-  //         />
-  //         <Button 
-  //           handleClick={handleSendWord} 
-  //           disabled={isWaitingForAI || isSubmittingRef.current || currentWord.trim() === ""}
-  //         >
-  //           Send
-  //         </Button>
-  //       </div>
-
-  //       {showProgressBar && !isWaitingForAI && (
-  //       <TimeProgressBar isActive={showProgressBar && !isWaitingForAI} />
-  //       )}
-        
-  //       <div className="text-center">
-  //         {!isWaitingForAI ? (
-  //           <p className="text-lg font-medium text-emerald-600">It's your turn!</p>
-  //         ) : (
-  //           <p className="text-lg font-medium text-gray-600">Waiting for your partner...</p>
-  //         )}
-  //       </div>
-  //     </div>
-  //   </div>
-  // );
 }
