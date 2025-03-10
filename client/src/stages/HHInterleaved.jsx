@@ -174,8 +174,6 @@ export function HHInterleaved() {
     const wordToSubmit = currentWord.trim();
     setCurrentWord(""); // Clear input immediately
 
-    // Reset the progress bar when a word is submitted
-    setShowProgressBar(false);
   
     try {
       // Check for duplicates before proceeding
@@ -234,7 +232,6 @@ export function HHInterleaved() {
           console.log(`Slow response penalty applied: ${delayPoints} penalties`);
         }
       }
-
       //add penalty for slow first word too
       if (words.length === 0) {
         const responseDelay = relativeTimestamp;
@@ -245,6 +242,9 @@ export function HHInterleaved() {
           console.log(`Slow response penalty applied to first word: ${delayPoints} penalties`);
         }
       }
+
+      // Reset the progress bar and add word to list 
+      setShowProgressBar(false);
   
       const updatedWords = [...words, {
         text: wordToSubmit,

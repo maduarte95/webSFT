@@ -145,7 +145,6 @@ async function getServerTimestamp() {
     const wordToSubmit = currentWord.trim();
     setCurrentWord(""); // Clear input immediately
 
-    setShowProgressBar(false);
   
     try {
 
@@ -227,6 +226,9 @@ async function getServerTimestamp() {
       });
       
       console.log(`Updated words: ${JSON.stringify(updatedWords)}`);
+
+      //Clear progress bar and trigger AI response
+      setShowProgressBar(false);
       await triggerAIResponse();
     
     } catch (error) {
