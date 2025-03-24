@@ -249,8 +249,8 @@ export function PostQuestions({ next }) {
         ))}
       </div>
       <div className="flex justify-between text-xs mt-1">
-        <span>Strongly AI System</span>
-        <span>Strongly Human</span>
+        <span>Strongly human</span>
+        <span>Strongly AI system</span>
       </div>
     </div>
   );
@@ -287,7 +287,7 @@ export function PostQuestions({ next }) {
                 "overallUsefulness",
                 "Overall, the interaction was useful for this task."
               )}
-              {renderLikertScale(
+              {/* {renderLikertScale(
                 taskIndex,
                 "partnerHuman",
                 "It felt like my partner was a human."
@@ -296,7 +296,7 @@ export function PostQuestions({ next }) {
                 taskIndex,
                 "partnerAI",
                 "It felt like my partner was an AI system."
-              )}
+              )} */}
               {renderLikertScaleAlternative(
                 taskIndex,
                 "partnerWhich",

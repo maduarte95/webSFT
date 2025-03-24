@@ -88,20 +88,20 @@ function setupRounds(game, treatment) {
   game.set("taskType", taskType);
 }
 
-function gaussianRandom(mean, standardDeviation, min, max) {
-  // Generate two independent uniform random numbers
-  const u = Math.random();
-  const v = Math.random();
+// function gaussianRandom(mean, standardDeviation, min, max) {
+//   // Generate two independent uniform random numbers
+//   const u = Math.random();
+//   const v = Math.random();
   
-  // Transform to standard normal distribution using Box-Muller
-  const normal = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+//   // Transform to standard normal distribution using Box-Muller
+//   const normal = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
   
-  // Transform to desired mean and standard deviation
-  let result = normal * standardDeviation + mean;
+//   // Transform to desired mean and standard deviation
+//   let result = normal * standardDeviation + mean;
   
-  // Clamp the result between min and max
-  return Math.min(Math.max(result, min), max);
-}
+//   // Clamp the result between min and max
+//   return Math.min(Math.max(result, min), max);
+// }
 
 
 Empirica.onGameStart(({ game }) => {
@@ -445,13 +445,13 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       const actualapiLatency = actualresponseTime - requestTime;
       console.log("Response received; Latency before artificial delay: ", actualapiLatency);
 
-      // Add artificial delay
-      const meanDelay = 1500;
-      const stdDev = 500;
-      const minDelay = 500;
-      const maxDelay = 10000;
-      const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
-      await new Promise(resolve => setTimeout(resolve, delay));
+      // // Add artificial delay
+      // const meanDelay = 1500;
+      // const stdDev = 500;
+      // const minDelay = 500;
+      // const maxDelay = 10000;
+      // const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
+      // await new Promise(resolve => setTimeout(resolve, delay));
 
       const responseTime = Date.now();
       
