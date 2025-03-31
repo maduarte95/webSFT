@@ -57,6 +57,7 @@ export function IntroductionSelfinitiated({ next }) {
          <ul className="list-disc pl-5 space-y-2">
            <li>Press Enter to submit an item</li>
            <li>Once your turn starts, submit an item as fast as possible</li>
+           <li>Submit only items from the requested category. Do not include anything else.</li>
            <li>Each item should be unique - no repetitions</li>
            <li>Your bonus will be based on the combined scores from all rounds with a deduction for slow responses</li>
            <li>You will receive the code for your bonus after you complete the post-task assessment</li>

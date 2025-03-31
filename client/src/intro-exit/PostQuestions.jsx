@@ -156,7 +156,7 @@ export function PostQuestions({ next }) {
         strategyAnticipation: "",
         wordRetrieval: "",
         overallUsefulness: "",
-        partnerHuman: ""
+        partnerWhich: ""
       })));
       setErrors(Array(newTaskData.length).fill(false));
     }
@@ -175,7 +175,7 @@ export function PostQuestions({ next }) {
     if (taskResponse.strategyAnticipation && 
         taskResponse.wordRetrieval && 
         taskResponse.overallUsefulness &&
-        taskResponse.partnerHuman) {
+        taskResponse.partnerWhich) {
       const newErrors = [...errors];
       newErrors[taskIndex] = false;
       setErrors(newErrors);
@@ -187,7 +187,7 @@ export function PostQuestions({ next }) {
       return !response.strategyAnticipation || 
              !response.wordRetrieval || 
              !response.overallUsefulness ||
-             !response.partnerHuman;
+             !response.partnerWhich;
     });
     setErrors(newErrors);
     return !newErrors.some(error => error);
@@ -263,7 +263,7 @@ export function PostQuestions({ next }) {
           <p className="text-gray-700">
             Your partner may have been a human or an artificial intelligence (AI) system, and may have been different in each task. 
             Please recall the tasks you completed and rate the following statements from 
-            1 (strongly disagree) to 7 (strongly agree). You will receive the code for your bonus reward in the next page.
+            1 to 7. You will receive the code for your bonus reward in the next page.
           </p>
         </div>
         <form onSubmit={handleSubmit}>

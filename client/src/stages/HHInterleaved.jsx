@@ -249,7 +249,8 @@ export function HHInterleaved() {
       const updatedWords = [...words, {
         text: wordToSubmit,
         player: player.id,
-        timestamp: relativeTimestamp
+        timestamp: relativeTimestamp,
+        absoluteTimestamp: Date.now()
       }];
   
       // Atomic updates - update words and change turn together
@@ -318,7 +319,7 @@ export function HHInterleaved() {
                 </div>
               </div>
             ) : (
-              <div className="text-2xl text-gray-600 mb-6">No words yet - start the conversation!</div>
+              <div className="text-2xl text-gray-600 mb-6">No words yet - name an item!</div>
             )}
           </div>
           

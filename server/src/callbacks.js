@@ -104,6 +104,7 @@ function setupRounds(game, treatment) {
 // }
 
 
+
 Empirica.onGameStart(({ game }) => {
   const treatment = game.get("treatment");
   const players = game.players;
@@ -172,6 +173,35 @@ Empirica.onRoundStart(({ round }) => {
   console.log(`Category for round ${round.get("name")}: ${category}`);
   
   round.set("category", category);
+
+  // initialize agents for LLM rounds
+
+  if (round.get("name") === "VerbalFluencyTask" || 
+  (round.get("name").startsWith("Interleaved") && taskIndex[currentRoundIndex] === "VerbalFluencyCollab")) {
+  
+  // Get agent name based on treatment and category
+  const agentName = getAgentName(treatment.cueType, category);
+  
+  players.forEach(async (player) => {
+      try {
+          // Create a unique session ID
+          // const sessionId = `${player.id}-${game.id}-${round.get("name")}`;
+          const sessionId = `${player.currentRound.id}`;
+          
+          console.log(`Initializing agent ${agentName} for player ${player.id}, session ${sessionId}`);
+          
+          await client.initAgent(
+              agentName,
+              sessionId,
+              player.id
+          );
+          
+          console.log(`Agent initialization successful for player ${player.id}`);
+      } catch (error) {
+          console.error(`Agent initialization failed for player ${player.id}:`, error);
+      }
+  });
+}
 
   players.forEach((player, playerArrayIndex) => {
     player.round.set("category", category);
@@ -398,30 +428,49 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       console.log(`Using agent: ${agentName} for category: ${category}, cueType: ${treatment.cueType}`);
       
       // Create session ID from game and round
-      const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
-      
+      // const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
+      const sessionId = `${player.currentRound.id}`;
+
       const pastWords = player.round.get("words") || [];
-      const lastWord = player.round.get("lastWord") || "";
+      // const lastWord = player.round.get("lastWord") || ""; //caution - doesn't always get the last word - database flushing issue?
+      const tempLastWord = player.round.get("lastWord") || "";
+      const lastWord = pastWords.length > 0 ? pastWords[pastWords.length - 1].text : "";
+      //getting lastword from list of words works but it's not good for self-initiated rounds -> we need to send all the previous user words to the AI 
+
 
       let attempts = 0;
       const maxAttempts = 3;
       let responseText = "";
       let isDuplicate = true;
+      let duplicateWords = [];
       
       // Try up to maxAttempts times to get a non-duplicate word
       while (isDuplicate && attempts < maxAttempts) {
           attempts++;
           console.log(`AI response attempt #${attempts}`);
-          
-          const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
-          
+
+          // let userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+          let userPrompt = `It's your turn. Last word: ${lastWord}`;
+          // const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
+          // If we've had duplicates, add them to the prompt
+          if (duplicateWords.length > 0) {
+            userPrompt += `. Please suggest a different word. The following words were already used: ${duplicateWords.join(", ")}`;
+          }
           console.log(`Making API call for player ${player.id}, session ${sessionId}`);
+          
           responseText = await client.generate(
               userPrompt,
               agentName,
               sessionId,
               player.id
           );
+
+          //log templastword
+          console.log(`[DEBUG LASTWORD]: ${tempLastWord}`);
+
+
+          //trim response text
+          responseText = responseText.trim();
           
           // Check if this response is a duplicate of any existing word
           isDuplicate = pastWords.some(w => 

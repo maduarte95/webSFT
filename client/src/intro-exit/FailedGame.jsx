@@ -15,21 +15,30 @@ export function FailedGame({ next }) {
             Thank you for your interest in participating in our study.
           </p>
           <p className="text-xl">
-            Unfortunately, the experiment could not start at this time.
+            We were not able to pair you with a partner, so the experiment could not start at this time.
+          </p>
+          <p className="text-xl">
+          You can either wait for the study to start or end the task now. 
           </p>
         </div>
       </div>
       
       <Alert title="Payment Information">
         <p>
-          Please submit the following code to Prolific:{" "}
+        If you wish to end the task here, you will be compensated for your time completing the surveys so far. Please submit the following code to Prolific:{" "}
           <strong>CWVAS57A</strong>
+        </p>
+        <p>
+          We will use the code to send you a partial payment.
         </p>
         {/* <p className="pt-1">
           You will receive the <strong>base reward</strong> for your time.
         </p> */}
         <p className="pt-1">
-          You will be compensated for your time. If you believe you are seeing this message in error, please refresh the page or contact the research team.
+          <strong>If you wish to continue the task, don't submit the code and wait a few minutes until we find a study partner.</strong>
+        </p>
+        <p className="pt-1">
+          If you believe you are seeing this message in error, please refresh the page or contact the research team.
         </p>
       </Alert>
 

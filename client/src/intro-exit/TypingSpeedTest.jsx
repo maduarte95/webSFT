@@ -33,6 +33,8 @@ export function TypingSpeedTest({ next }) {
           setIsFinished(true);
           setHasFailed(true);
           calculateSpeed();
+          player.set("failed_typing_test", true);
+          console.log("Failed typing test - timer expired");
         }
       }, 1000);
 
@@ -64,9 +66,10 @@ export function TypingSpeedTest({ next }) {
     player.set("typingSpeedCPM", cpm);
     player.set("typingSpeedTime", timeInSeconds);
 
-    if (hasFailed) {
-      player.set("failed_typing_test", true);
-    }
+    // if (hasFailed) {
+    //   player.set("failed_typing_test", true);
+    //   console.log("Failed typing test");
+    // }
 
   };
 

@@ -35,6 +35,32 @@ export class SFTClient {
             throw error;
         }
     }
+
+    async initAgent(agentName, sessionId, userId) {
+        try {
+            const response = await fetch(`${this.baseUrl}/init`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_message: "init",
+                    agent_name: agentName,
+                    session_id: sessionId,
+                    user_id: userId
+                })
+            });
+    
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+    
+            return await response.json();
+        } catch (error) {
+            console.error('SFTClient init error:', error);
+            throw error;
+        }
+    }
     
     // async generate(message, agentName, sessionId, userId) {
     //     try {

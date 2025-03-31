@@ -207,16 +207,16 @@ async function getServerTimestamp() {
           console.log(`Slow response penalty applied to first word: ${delayPoints} penalties`);
         }
       }
-
   
       const updatedWords = [...words, {
         text: wordToSubmit,
         source: 'user',
-        timestamp: timestamp
+        timestamp: timestamp,
+        absoluteTimestamp: Date.now()
       }];
  
-      await player.round.set("words", updatedWords);
-      await player.round.set("lastWord", wordToSubmit);  // Changed from currentWord.trim()
+      player.round.set("words", updatedWords); //await removed since it does nothing to this type of expression
+      player.round.set("lastWord", wordToSubmit);  // Changed from currentWord.trim()
       setLastWord(`You: ${wordToSubmit}`);  // Changed from currentWord.trim()
 
       console.log(`[Player ${player.id}] Word submission complete:`, {
@@ -293,7 +293,10 @@ async function getServerTimestamp() {
       text: response.text, 
       source: 'ai', 
       timestamp: response.timestamp - serverStartTime, //timestamp comes from server - change this so it's the same as user timestamp ? 
-      apiLatency: response.apiLatency
+      apiLatency: response.apiLatency,
+      absoluteTimestamp: Date.now(),
+      // absoluteTimestampClient: Date.now(),
+      // absoluteTimestampServer: response.timestamp
     }];
 
     console.log("AI response timestamp since start of task:", response.timestamp, "setting words");
@@ -312,7 +315,7 @@ async function getServerTimestamp() {
     // console.log("Client-side relative timestamp:", clientrelativeTimestamp);
 
     const clientTimestamp = getAdjustedTimestamp();
-    console.log("Client-side timestamp:", clientTimestamp);
+    console.log("Client-side absolute timestamp:", clientTimestamp);
     const clientrelativeTimestamp = getRelativeTimestamp();
     console.log("Client-side relative timestamp:", clientrelativeTimestamp);
     
@@ -374,7 +377,7 @@ async function getServerTimestamp() {
                 </div>
               </div>
             ) : (
-              <div className="text-2xl text-gray-600 mb-6">No words yet - start the conversation!</div>
+              <div className="text-2xl text-gray-600 mb-6">No words yet - name an item!</div>
             )}
           </div>
           

@@ -112,28 +112,52 @@ export default function App() {
     player.set("sessionID", sessionID);
 
     // Uncomment for intro steps
-    // return [
-    //   PreTask, TypingSpeedTest,
-    //   taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
-    // ];
-
-    // Uncomment for no intro steps
     return [
+      PreTask, TypingSpeedTest,
       taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
     ];
+
+    // Uncomment for no intro steps
+  //   return [
+  //     taskType === "interleaved" ? IntroductionInterleaved : IntroductionSelfinitiated
+  //   ];
   }
 
   // function exitSteps({ game, player }) {
   //   return [PostSurvey, PostQuestions, FinalScoreSummary];
   // }
 
+  // //previous implemented function
+  // function exitSteps({ game, player }) {
+  //   // Check if the game failed to start (not ended) or if player failed typing test
+  //   if (player.get("ended") === "no more games" || player.get("ended") === "game failed" || player.get("failed_typing_test")) {
+  //     return [FailedGame];
+  //   }
+  //   return [PostSurvey, PostQuestions, FinalScoreSummary];
+  // }
+
+  // //empirica documentation 
+  // function exitSteps({ game, player }) {
+  //   if (player.get("ended") == "game ended" || player.get("ended") == "game terminated") {
+  //     return [SubmitAnswer, TLX, SubjectiveSurvey, ExpFeedback];
+  //   }
+  //   else{
+  //     return [GamesFull];
+  //   }
+  // }
+
+  //based on empirica documentation 
   function exitSteps({ game, player }) {
-    // Check if the game failed to start (not ended) or if player failed typing test
-    if (player.get("ended") === "no more games" || player.get("ended") === "game failed" || player.get("failed_typing_test")) {
+    if (player.get("ended") == "game ended") {
+      return [PostSurvey, PostQuestions, FinalScoreSummary];
+    }
+    else{
       return [FailedGame];
     }
-    return [PostSurvey, PostQuestions, FinalScoreSummary];
   }
+
+  //actually there is also "lobby timed out" and "no more games"
+
 
   //   // Add this consent configuration function
   // const consentConfig = {
