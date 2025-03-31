@@ -43,23 +43,11 @@ export function HHInterleaved() {
     }
   }, [round.get("words")]);
 
-  // //Disable progress bar in first turn
-  // useEffect(() => {
-  //   if (round.get("currentTurnPlayerId") === player.id && round.get("words").length === 0) {
-  //     setShowProgressBar(false);
-  //   }
-  // }, [round.get("currentTurnPlayerId"), round.get("words")]);
-
   // Add serverStartTime check
   const serverStartTime = stage.get("serverStartTime");
   if (!serverStartTime) {
     return <div>Loading...</div>;
   }
-
-    // Get a timestamp adjusted to match server time
-  // function getAdjustedTimestamp() {
-  //   return Date.now() + clientTimeOffset;
-  // }
 
   //debug - just use client time - seems to work
   function getAdjustedTimestamp() {
@@ -191,23 +179,18 @@ export function HHInterleaved() {
   
       console.log(`[Player ${player.id}] Starting word submission`);
   
-      // const timestamp = await getServerTimestamp();
-      // if (!timestamp) {
-      //   throw new Error("No timestamp received");
-      // }
+      const timestamp = await getServerTimestamp();
+      if (!timestamp) {
+        throw new Error("No server timestamp received");
+      }
   
-      // console.log(`[Player ${player.id}] Got timestamp: ${timestamp}`);
+      console.log(`[Player ${player.id}] Got timestamp from server: ${timestamp}`);
       
-      // if (!serverStartTime) {
-      //   throw new Error("No server start time available");
-      // }
+      if (!serverStartTime) {
+        throw new Error("No server start time available");
+      }
   
-      // const relativeTimestamp = timestamp - serverStartTime;
-      // if (relativeTimestamp < 0) {
-      //   throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
-      // }
-
-      const relativeTimestamp = getRelativeTimestamp();
+      const relativeTimestamp = timestamp - serverStartTime;
       if (relativeTimestamp < 0) {
         throw new Error(`Invalid relative timestamp: ${relativeTimestamp}`);
       }
