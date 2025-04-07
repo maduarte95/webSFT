@@ -222,7 +222,7 @@ export function HHInterleaved() {
         text: wordToSubmit,
         player: player.id,
         timestamp: relativeTimestamp,
-        absoluteTimestamp: Date.now()
+        absoluteTimestamp: timestamp,
       }];
   
       // Atomic updates - update words and change turn together
