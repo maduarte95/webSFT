@@ -49,17 +49,6 @@ export function HHInterleaved() {
     return <div>Loading...</div>;
   }
 
-  //debug - just use client time - seems to work
-  function getAdjustedTimestamp() {
-    return Date.now()
-  }
-  
-  // Get a timestamp relative to stage start
-  function getRelativeTimestamp() {
-    const adjustedNow = getAdjustedTimestamp();
-    return Math.max(0, adjustedNow - serverStartTime);
-  }
-  
   // Calculate and store the time offset when component mounts
   useEffect(() => {
       if (serverStartTime) {
@@ -124,7 +113,7 @@ export function HHInterleaved() {
     await player.stage.set("serverTimestamp", undefined);
     console.log(`[Player ${player.id}] Cleared existing timestamp`);
     
-    // Set request flag
+    // Set request flag for server timestamp
     await player.set("requestTimestamp", true);
     console.log(`[Player ${player.id}] Set request flag`);
   
