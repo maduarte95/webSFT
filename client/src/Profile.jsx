@@ -23,8 +23,11 @@ export function Profile() {
   const displayRoundNumber = currentRoundIndex + 1;
   const maxRounds = taskIndices.length;
   const roundScore = player.round.get("score") || 0;
-  const totalScore = player.get("score") || 0;
+  const serverTotalScore = player.get("score") || 0; // Last server-side total
   const penalties = player.get("slowResponsePenalties")
+
+  // Calculate real-time total score: server total + current round score
+  const realtimeTotalScore = serverTotalScore + roundScore;
 
   return (
     <div className="min-w-lg md:min-w-2xl mt-2 m-x-auto px-3 py-2 text-gray-500 rounded-md grid grid-cols-3 items-center border-.5">
@@ -46,7 +49,7 @@ export function Profile() {
             {roundScore}
           </div>
           <div className="text-xs font-semibold text-gray-400 mt-1">
-            Total: {totalScore}
+            Total: {realtimeTotalScore}
           </div>
           <div className="text-xs font-semibold text-gray-400 mt-1">
             Penalties: {penalties}

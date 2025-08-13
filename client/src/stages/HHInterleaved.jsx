@@ -18,13 +18,19 @@ export function HHInterleaved() {
   const isSubmittingRef = useRef(false);
   const wordHistoryRef = useRef(null);
 
-  const [currentTimestamp, setCurrentTimestamp] = useState(null);
-
   //State variable for progress bar
   const [showProgressBar, setShowProgressBar] = useState(false);
 
-  const [clientTimeOffset, setClientTimeOffset] = useState(0);
+  // Text normalization function
+  const normalizeString = (str) => {
+    return str.trim().toLowerCase().replace(/[\s\-',.]+/g, ''); // Remove spaces, hyphens, apostrophes, commas, periods and convert to lowercase
+  };
   
+  //Wait for serverStartTime before rendering interactive elements
+  const serverStartTime = stage.get("serverStartTime");
+  if (!serverStartTime) {
+    return <div>Loading...</div>;
+  }
 
   // Add an effect to handle turn changes for progress bar
   useEffect(() => {
@@ -43,23 +49,7 @@ export function HHInterleaved() {
     }
   }, [round.get("words")]);
 
-  // Add serverStartTime check
-  const serverStartTime = stage.get("serverStartTime");
-  if (!serverStartTime) {
-    return <div>Loading...</div>;
-  }
-
-  // Calculate and store the time offset when component mounts
-  useEffect(() => {
-      if (serverStartTime) {
-        const clientTime = Date.now();
-        // Calculate how much the client time needs to be adjusted to match server time
-        const offset = serverStartTime - clientTime;
-        setClientTimeOffset(offset);
-        console.log(`Time offset calculated: ${offset}ms (client: ${clientTime}, server: ${serverStartTime}) for stage ${stage.get("name")}`);
-      }
-    }, [serverStartTime]);
-
+  // Focus input when it's the player's turn and input is available
   useEffect(() => {
     if (isPlayerTurn && inputRef.current && !isSubmittingRef.current) {
       inputRef.current.focus();
@@ -85,8 +75,14 @@ export function HHInterleaved() {
       timestamp: Date.now()
     });
   }, [round.get("currentTurnPlayerId")]);
-  
 
+  // logging - Track server timestamp changes
+  useEffect(() => {
+    const timestamp = player.stage.get("serverTimestamp");
+    console.log(`[Player ${player.id}] Timestamp changed:`, timestamp);
+  }, [player.stage.get("serverTimestamp")]);
+  
+  // Update word display and score when words change
   useEffect(() => {
     const words = round.get("words") || [];
     const lastSavedWord = words[words.length - 1];
@@ -97,24 +93,16 @@ export function HHInterleaved() {
     player.round.set("score", words.length); //set both players' score to total word count  
   }, [round.get("words"), player.id]); 
 
-  useEffect(() => {
-    const timestamp = player.stage.get("serverTimestamp");
-    console.log(`[Player ${player.id}] Timestamp changed:`, timestamp);
-    // if (timestamp) {
-    //   setCurrentTimestamp(timestamp);
-    // }
-  }, [player.stage.get("serverTimestamp")]);
-
 
   async function getServerTimestamp() {
     console.log(`[Player ${player.id}] Requesting server timestamp for stage ${stage.get("name")}`);
     
     // Clear existing timestamp
-    await player.stage.set("serverTimestamp", undefined);
+    player.stage.set("serverTimestamp", undefined);
     console.log(`[Player ${player.id}] Cleared existing timestamp`);
     
     // Set request flag for server timestamp
-    await player.set("requestTimestamp", true);
+    player.set("requestTimestamp", true);
     console.log(`[Player ${player.id}] Set request flag`);
   
     return new Promise((resolve, reject) => {
@@ -155,14 +143,19 @@ export function HHInterleaved() {
     try {
       // Check for duplicates before proceeding
       const words = round.get("words") || [];
+      const normalizedWordToSubmit = normalizeString(wordToSubmit);
       const isDuplicate = words.some(w => 
-        w.text.toLowerCase() === wordToSubmit.toLowerCase()
-        //&& w.player === player.id
+        normalizeString(w.text) === normalizedWordToSubmit
       );
   
       if (isDuplicate) {
         console.log(`[Player ${player.id}] Duplicate word rejected: ${wordToSubmit}`);
         setLastWord(`"${wordToSubmit}" was already used!`);
+        // Reset progress bar on duplicate rejection if it's player's turn
+        if (isPlayerTurn) {
+          setShowProgressBar(false);
+          setTimeout(() => setShowProgressBar(true), 10);
+        }
         return;
       }
   
@@ -242,8 +235,13 @@ export function HHInterleaved() {
   
     } catch (error) {
       console.error(`[Player ${player.id}] Word submission failed:`, error);
+      // Reset progress bar on submission failure if it's player's turn
+      if (isPlayerTurn) {
+        setShowProgressBar(false);
+        setTimeout(() => setShowProgressBar(true), 10);
+      }
       // On error, restore the word to input if it wasn't a duplicate - ???
-      if (wordToSubmit && !words?.some(w => w.text.toLowerCase() === wordToSubmit.toLowerCase())) {
+      if (wordToSubmit && !words?.some(w => normalizeString(w.text) === normalizeString(wordToSubmit))) {
         setCurrentWord(wordToSubmit);
       }
     } finally {

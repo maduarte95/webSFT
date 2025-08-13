@@ -7,6 +7,9 @@ export function VerbalFluencyTask() {
   const [currentWord, setCurrentWord] = useState("");
   const [lastWord, setLastWord] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Add error state management
+  const [apiError, setApiError] = useState(null);
   const player = usePlayer();
   const round = useRound();
   const stage = useStage();
@@ -48,6 +51,17 @@ export function VerbalFluencyTask() {
       handleAIResponse(response);
     }
   }, [player.stage.get("apiResponse")]);
+
+  // Monitor for API errors from server
+  useEffect(() => {
+    const error = player.stage.get("apiError");
+    if (error) {
+      setApiError(error);
+      setIsLoading(false);
+      // Clear error after displaying
+      setTimeout(() => setApiError(null), 5000);
+    }
+  }, [player.stage.get("apiError")]);
 
   async function getServerTimestamp() {
     console.log(`[Player ${player.id}] Requesting server timestamp for stage ${stage.get("name")}`);
@@ -185,6 +199,13 @@ export function VerbalFluencyTask() {
 
     } catch (error) {
       console.error(`[Player ${player.id}] Failed to request hint:`, error);
+      
+      // Set user-visible error
+      setApiError({
+        message: "Something went wrong. Please try again.",
+        type: "API_CALL_FAILED"
+      });
+      
       setIsLoading(false);
       pendingResponseRef.current = false;
     }
@@ -226,6 +247,16 @@ export function VerbalFluencyTask() {
       </div>
       
       <h2 className="text-3xl font-bold mb-8">Name as many items as you can: {category}</h2>
+      
+      {/* Error banner */}
+      {apiError && (
+        <div className="w-full max-w-md mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <strong>Error: </strong>
+            Something went wrong. Please try again.
+          </div>
+        </div>
+      )}
       
       <div className="mt-8 text-4xl font-bold mb-8">
         {lastWord || "No words yet"}

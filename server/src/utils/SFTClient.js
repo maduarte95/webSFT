@@ -61,6 +61,26 @@ export class SFTClient {
             throw error;
         }
     }
+
+    // Retry logic with exponential backoff
+    async generateWithRetry(message, agentName, sessionId, userId, maxRetries = 3) {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await this.generate(message, agentName, sessionId, userId);
+            } catch (error) {
+                console.error(`SFTClient - Attempt ${attempt} failed:`, error.message);
+                
+                if (attempt === maxRetries) {
+                    console.error(`SFTClient - All ${maxRetries} attempts failed`);
+                    throw error;
+                }
+
+                const delay = Math.min(1000 * Math.pow(2, attempt - 1), 10000);
+                console.log(`SFTClient - Retry attempt ${attempt + 1} in ${delay}ms`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+    }
     
     // async generate(message, agentName, sessionId, userId) {
     //     try {

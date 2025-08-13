@@ -16,6 +16,9 @@ export function VerbalFluencyCollab() {
 
   //states for the bar
   const [showProgressBar, setShowProgressBar] = useState(false);
+  
+  // Add error state management
+  const [apiError, setApiError] = useState(null);
 
   // NEW: Track pending API responses to prevent lost responses
   const pendingResponseRef = useRef(false);
@@ -24,6 +27,11 @@ export function VerbalFluencyCollab() {
 
   //get client side time with offset
   const [clientTimeOffset, setClientTimeOffset] = useState(0);
+
+  // Text normalization function
+  const normalizeString = (str) => {
+    return str.trim().toLowerCase().replace(/[\s\-',.]+/g, ''); // Remove spaces, hyphens, apostrophes, commas, periods and convert to lowercase
+  };
   
   // Wait for serverStartTime before rendering interactive elements //issue - this is not synchronized! will lead to negative timestamps!
   const serverStartTime = stage.get("serverStartTime");
@@ -100,6 +108,18 @@ export function VerbalFluencyCollab() {
     }
   }, [player.stage.get("apiResponse")]);
 
+  // Monitor for API errors from server
+  useEffect(() => {
+    const error = player.stage.get("apiError");
+    if (error) {
+      setApiError(error);
+      setIsWaitingForAI(false);
+      setShowProgressBar(true);
+      // Clear error after displaying
+      setTimeout(() => setApiError(null), 5000);
+    }
+  }, [player.stage.get("apiError")]);
+
 async function getServerTimestamp() {
   console.log(`[Player ${player.id}] Requesting server timestamp for stage ${stage.get("name")}`);
   
@@ -150,14 +170,17 @@ async function getServerTimestamp() {
 
       // Check for duplicates before setting waiting state
       const words = player.round.get("words") || [];
+      const normalizedWordToSubmit = normalizeString(wordToSubmit);
       const isDuplicate = words.some(w =>
-        w.text.toLowerCase() === wordToSubmit.toLowerCase()
-        //&& w.source === 'user'
+        normalizeString(w.text) === normalizedWordToSubmit
       );
 
       if (isDuplicate) {
         console.log(`Duplicate word rejected: ${wordToSubmit}`);
         setLastWord(`"${wordToSubmit}" was already used!`);
+        // Reset progress bar on duplicate rejection
+        setShowProgressBar(false);
+        setTimeout(() => setShowProgressBar(true), 10);
         return;  // Exit early without setting isWaitingForAI
       }
 
@@ -234,6 +257,13 @@ async function getServerTimestamp() {
     } catch (error) {
       console.error(`[Player ${player.id}] Word submission failed:`, error);
       setIsWaitingForAI(false); // Reset waiting state on error
+      // Reset progress bar on submission failure
+      setShowProgressBar(false);
+      setTimeout(() => setShowProgressBar(true), 10);
+      // On error, restore the word to input if it wasn't a duplicate
+      if (wordToSubmit && !words?.some(w => normalizeString(w.text) === normalizeString(wordToSubmit))) {
+        setCurrentWord(wordToSubmit);
+      }
     } finally {
       isSubmittingRef.current = false;
     }
@@ -276,9 +306,17 @@ async function getServerTimestamp() {
         ]);
 
     } catch (error) {
-        console.error(`[Player ${player.id}] Failed to trigger AI response:`, error); //TODO: consider saving error to player state
+        console.error(`[Player ${player.id}] Failed to trigger AI response:`, error);
+        
+        // Set user-visible error
+        setApiError({
+            message: "Something went wrong. Please try again.",
+            type: "API_CALL_FAILED"
+        });
+        
         // Clean up all states if API trigger fails
         setIsWaitingForAI(false);
+        setShowProgressBar(true);
         pendingResponseRef.current = false;
         await player.set("apiTrigger", false);
     }
@@ -288,41 +326,28 @@ async function getServerTimestamp() {
     console.log("Handling AI response:", response);
     pendingResponseRef.current = false;
 
+    const clientTimestamp = getAdjustedTimestamp();
+    // console.log("Client-side absolute timestamp:", clientTimestamp);
+    const clientrelativeTimestamp = getRelativeTimestamp();
+    // console.log("Client-side relative timestamp:", clientrelativeTimestamp);
+
     const words = player.round.get("words") || [];
     const updatedWords = [...words, { 
       text: response.text, 
       source: 'ai', 
-      timestamp: response.timestamp - serverStartTime, //timestamp comes from server - change this so it's the same as user timestamp ? 
+      timestampServer: response.timestamp - serverStartTime, //timestamp from server
+      timestampClient: clientrelativeTimestamp,
+      absoluteTimestampServer: response.timestamp,
+      absoluteTimestampClient: clientTimestamp,
       apiLatency: response.apiLatency,
-      absoluteTimestamp: Date.now(),
-      // absoluteTimestampClient: Date.now(),
-      // absoluteTimestampServer: response.timestamp
     }];
 
     console.log("AI response timestamp since start of task:", response.timestamp, "setting words");
-
-    // //DEBUG FEB 19 - log the response timestamp obtained the same way as the user timestamp (with get server timestamp function) to see if they're the same
-    // const alternativeTimestamp = await getServerTimestamp();
-    // console.log("Alternative client-side absolute timestamp:", alternativeTimestamp);
-    // const alternativeLatency = alternativeTimestamp - serverStartTime;
-    // console.log("Alternative client-side stage timestamp since start of task:", alternativeLatency); //pretty similar to the server timestamp! will only be off if server-client communication is slow
-    // //END DEBUG
-
-    //Debug client-side timestamp
-    // const clientTimestamp = Date.now();
-    // console.log("Client-side timestamp:", clientTimestamp);
-    // const clientrelativeTimestamp = clientTimestamp - serverStartTime;
-    // console.log("Client-side relative timestamp:", clientrelativeTimestamp);
-
-    const clientTimestamp = getAdjustedTimestamp();
-    console.log("Client-side absolute timestamp:", clientTimestamp);
-    const clientrelativeTimestamp = getRelativeTimestamp();
-    console.log("Client-side relative timestamp:", clientrelativeTimestamp);
     
-    await player.round.set("words", updatedWords);
+    player.round.set("words", updatedWords);
     setLastWord(`Partner: ${response.text}`);
     setIsWaitingForAI(false);
-    await player.stage.set("apiResponse", null);
+    player.stage.set("apiResponse", null);
 
     // Start the progress bar
     setShowProgressBar(true);
@@ -330,16 +355,26 @@ async function getServerTimestamp() {
     console.log("AI response processed. Updated words:", updatedWords);
   }
 
-  function handleKeyDown(event) {
-    if (event.key === "Enter" && !event.repeat) {
-      event.preventDefault();
-      handleSendWord();
-    }
-  }
+  // function handleKeyDown(event) {
+  //   if (event.key === "Enter" && !event.repeat) {
+  //     event.preventDefault();
+  //     handleSendWord();
+  //   }
+  // }
 
   return (
     <div className="flex flex-col items-center justify-center h-full">
       <h2 className="text-3xl font-bold mb-6">Name as many items as you can: {category}</h2>
+      
+      {/* Error banner */}
+      {apiError && (
+        <div className="w-full max-w-4xl mb-4">
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            <strong>Error: </strong>
+            Something went wrong. Please try again.
+          </div>
+        </div>
+      )}
       
       <div className="w-full max-w-4xl flex mb-8">
         {/* Left side - Word History */}

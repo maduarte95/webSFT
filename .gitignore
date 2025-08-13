@@ -1,3 +1,6 @@
 *.zip
 *.tar.zst
 server/llm_config.json
+
+# Data exports
+websft-*/

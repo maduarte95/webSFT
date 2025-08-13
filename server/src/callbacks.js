@@ -12,6 +12,11 @@ const categoryMap = {
 // One shared client
 const client = new SFTClient();
 
+// Text normalization function - matches client-side normalization
+function normalizeString(str) {
+  return str.trim().toLowerCase().replace(/[\s\-',.]+/g, ''); // Remove spaces, hyphens, apostrophes, commas, periods and convert to lowercase
+}
+
 // Exact agent name mapping - has to correspond to agent names defined in SFTplayground yaml files
 const AGENT_NAMES = {
   'adjacent': {
@@ -104,7 +109,6 @@ function setupRounds(game, treatment) {
 // }
 
 
-
 Empirica.onGameStart(({ game }) => {
   const treatment = game.get("treatment");
   const players = game.players;
@@ -186,7 +190,7 @@ Empirica.onRoundStart(({ round }) => {
       try {
           // Create a unique session ID
           // const sessionId = `${player.id}-${game.id}-${round.get("name")}`;
-          const sessionId = `${player.currentRound.id}`;
+          const sessionId = `${player.id}-${player.currentRound.id}`;
           
           console.log(`Initializing agent ${agentName} for player ${player.id}, session ${sessionId}`);
           
@@ -340,76 +344,28 @@ Empirica.onGameEnded(({ game }) => {
   const taskCategories = game.get("taskCategory");
   console.log(`Task type: ${taskType}, taskIndices: ${taskIndices}, taskCategories: ${taskCategories}`);
 
+  // Calculate final bonus based on total score
   game.players.forEach(player => {
+    const totalScore = player.get("score") || 0;
+    const bonusRate = 0.02; // £0.02 per word
+    const penalties = player.get("slowResponsePenalties") || 0;
+    const penaltiesRate = 0.01; // £0.01 penalty for slow responses
+    const bonusAmount = (totalScore * bonusRate) - (penalties * penaltiesRate);
+    player.set("bonusAmount", bonusAmount);
+    
+    // Store existing task metadata
     player.set("taskType", taskType);
     player.set("taskIndices", taskIndices);
     player.set("taskCategories", taskCategories);
     player.set("requestTimestamp", false);
-    console.log(`Game ended; player ${player.id} task type, indices, and categories recorded and requestTimestamp reset`);
+    
+    console.log(`Game ended; player ${player.id}:
+      Total Score: ${totalScore} words
+      Penalties: ${penalties} slow responses  
+      Bonus: £${bonusAmount.toFixed(2)}
+      Task type, indices, and categories recorded and requestTimestamp reset`);
   });
 });
-
-
-// Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
-//   if (!player.get("apiTrigger")) {
-//       console.log("API trigger is false, skipping API call");
-//       return;
-//   }
-
-//   try {
-//       const treatment = player.currentGame.get("treatment");
-//       const category = player.round.get("category");
-//       const requestTime = Date.now();
-      
-//       // Get exact agent name from mapping
-//       const agentName = getAgentName(treatment.cueType, category);
-//       console.log(`Using agent: ${agentName} for category: ${category}, cueType: ${treatment.cueType}`);
-      
-//       // Create session ID from game and round
-//       const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
-      
-//       const pastWords = player.round.get("words") || [];
-//       const lastWord = player.round.get("lastWord") || "";
-//       const userPrompt = `It's your turn. Past words: ${pastWords.map(w => w.text).join(", ")}. Last word: ${lastWord}`;
-
-//       console.log(`Making API call for player ${player.id}, session ${sessionId}`);
-//       const response = await client.generate(
-//           userPrompt,
-//           agentName,
-//           sessionId,
-//           player.id
-//       );
-
-//       // log actual latency
-//       const actualresponseTime = Date.now();
-//       const actualapiLatency = actualresponseTime - requestTime;
-//       console.log("Response received; Latency before artificial delay: ", actualapiLatency);
-
-//       // Add artificial delay
-//       const meanDelay = 1500;
-//       const stdDev = 500;
-//       const minDelay = 500;
-//       const maxDelay = 10000;
-//       const delay = gaussianRandom(meanDelay, stdDev, minDelay, maxDelay);
-//       await new Promise(resolve => setTimeout(resolve, delay));
-
-//       const responseTime = Date.now();
-      
-//       await player.stage.set("apiResponse", {
-//           text: response,
-//           timestamp: responseTime,
-//           apiLatency: responseTime - requestTime
-//       });
-
-//       console.log(`API response delayed, processed and set for player ${player.id}:`, response);
-
-//   } catch (error) {
-//       console.error(`API call failed for player ${player.id}:`, error);
-//       await player.stage.set("apiError", error.message);
-//   } finally {
-//       await player.set("apiTrigger", false);
-//   }
-// });
 
 // API call with retries for duplicated words
 Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
@@ -417,6 +373,10 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       console.log("API trigger is false, skipping API call");
       return;
   }
+
+  // Create session ID from game and round (moved outside try for error handling)
+  // const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
+  const sessionId = `${player.id}-${player.currentRound.id}`;
 
   try {
       const treatment = player.currentGame.get("treatment");
@@ -426,10 +386,6 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
       // Get exact agent name from mapping
       const agentName = getAgentName(treatment.cueType, category);
       console.log(`Using agent: ${agentName} for category: ${category}, cueType: ${treatment.cueType}`);
-      
-      // Create session ID from game and round
-      // const sessionId = `${player.id}-${player.currentGame.id}-${player.currentRound.get("name")}`;
-      const sessionId = `${player.currentRound.id}`;
 
       const pastWords = player.round.get("words") || [];
       // const lastWord = player.round.get("lastWord") || ""; //caution - doesn't always get the last word - database flushing issue?
@@ -458,11 +414,12 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
           }
           console.log(`Making API call for player ${player.id}, session ${sessionId}`);
           
-          responseText = await client.generate(
+          responseText = await client.generateWithRetry(
               userPrompt,
               agentName,
               sessionId,
-              player.id
+              player.id,
+              3  // maxRetries
           );
 
           //log templastword
@@ -472,12 +429,14 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
           //trim response text
           responseText = responseText.trim();
           
-          // Check if this response is a duplicate of any existing word
+          // Check if this response is a duplicate of any existing word using normalization
+          const normalizedResponse = normalizeString(responseText);
           isDuplicate = pastWords.some(w => 
-              w.text.toLowerCase() === responseText.toLowerCase()
+              normalizeString(w.text) === normalizedResponse
           );
           
           if (isDuplicate) {
+              duplicateWords.push(responseText);
               console.log(`Duplicate AI response detected: "${responseText}". Retrying...`);
           } else {
               console.log(`Non-duplicate AI response received: "${responseText}"`);
@@ -514,7 +473,23 @@ Empirica.on("player", "apiTrigger", async (ctx, { player }) => {
 
   } catch (error) {
       console.error(`API call failed for player ${player.id}:`, error);
-      await player.stage.set("apiError", error.message);
+
+      // Categorize error types
+      const errorType = error.message?.includes('HTTP error') ? 'HTTP' :
+                       error.message?.includes('timeout') ? 'TIMEOUT' :
+                       error.message?.includes('network') ? 'NETWORK' : 'UNKNOWN';
+
+      await player.stage.set("apiError", {
+          message: error.message,
+          type: errorType,
+          timestamp: Date.now(),
+          playerId: player.id,
+          sessionId: sessionId
+      });
+
+      // Enhanced logging for debugging
+      console.error(`[API ERROR] Player: ${player.id}, Session: ${sessionId}, Type: ${errorType}, Message: ${error.message}`);
+      
   } finally {
       await player.set("apiTrigger", false);
   }
@@ -537,19 +512,11 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
   await player.set("requestTimestamp", false);
   await Empirica.flush();
 
-  // player.stage.set("serverTimestamp", timestamp);
-  // player.set("requestTimestamp", false);
-  //await Empirica.flush();
-
-
   //issue: there is a bottleneck here, if the api call from one player is not finished, the timestamp from the other player will not be updated and word submission fails!
   //tried: removing empirica.flush, did not work; batch processing, did not work. try: removing await/ removing await and flush / removing await and keeping await flush
   //consider - queue system; changing timeout in client side; moving timestamps to client side
 
-  //player.stage.set("serverTimestamp", timestamp);
-  //player.set("requestTimestamp", false);
-  // await Empirica.flush();
-
+  // Debugging - verify the timestamp was set correctly
   const verifyTimestamp = player.stage.get("serverTimestamp");
   console.log(`[Timestamp Service] Response for ${player.id}:`, {
     set: timestamp,
@@ -557,53 +524,3 @@ Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
     match: timestamp === verifyTimestamp
   });
 });
-
-
-// Empirica.on("player", "requestTimestamp", async (ctx, { player }) => {
-//   console.log(`[Timestamp Service] New request from player ${player.id}`);
-//   console.log(`[Timestamp Service] Current stage: ${player.currentStage.get("name")}`);
-  
-//   if (!player.get("requestTimestamp")) {
-//     console.log(`[Timestamp Service] Request flag is false for player ${player.id}. Skipping update.`);
-//     return;
-//   }
-  
-//   const timestamp = Date.now();
-  
-//   // Set the timestamp
-//   await player.stage.set("serverTimestamp", timestamp);
-//   await Empirica.flush();
-  
-//   // Verify the timestamp was set correctly (with retries)
-//   let verificationSuccess = false;
-//   let verifiedTimestamp = null;
-//   let retryCount = 0;
-//   const maxRetries = 5;
-  
-//   while (!verificationSuccess && retryCount < maxRetries) {
-//     verifiedTimestamp = player.stage.get("serverTimestamp");
-//     console.log(`[Timestamp Service] Verification attempt ${retryCount + 1} for ${player.id}: ${verifiedTimestamp}`);
-    
-//     if (verifiedTimestamp === timestamp) {
-//       verificationSuccess = true;
-//     } else {
-//       retryCount++;
-//       // Small delay between retries (50ms)
-//       await new Promise(resolve => setTimeout(resolve, 50));
-//       // Try to set it again
-//       await player.stage.set("serverTimestamp", timestamp);
-//       await Empirica.flush();
-//     }
-//   }
-  
-//   // Only reset the flag after successful verification or max retries
-//   await player.set("requestTimestamp", false);
-//   await Empirica.flush();
-  
-//   console.log(`[Timestamp Service] Response for ${player.id}: { 
-//     set: ${timestamp}, 
-//     verified: ${verifiedTimestamp}, 
-//     match: ${verifiedTimestamp === timestamp},
-//     retries: ${retryCount} 
-//   }`);
-// });
